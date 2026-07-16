@@ -1,0 +1,991 @@
+{
+  "address": "6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26",
+  "metadata": {
+    "name": "player_perps",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize_fixture",
+      "discriminator": [
+        26,
+        99,
+        178,
+        9,
+        192,
+        14,
+        167,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "usdc_mint",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "associated_token_program",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "signer": false
+        }
+      ],
+      "args": [
+        {
+          "name": "txline_fixture_id",
+          "type": "u64"
+        },
+        {
+          "name": "lock_time",
+          "type": "i64"
+        },
+        {
+          "name": "dist_params",
+          "type": {
+            "defined": {
+              "name": "DistParams"
+            }
+          }
+        },
+        {
+          "name": "payout_params",
+          "type": {
+            "defined": {
+              "name": "PayoutParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "stake",
+      "discriminator": [
+        206,
+        176,
+        202,
+        18,
+        200,
+        209,
+        179,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "staker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "staker_usdc",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "signer": false
+        }
+      ],
+      "args": [
+        {
+          "name": "guess_home",
+          "type": "u8"
+        },
+        {
+          "name": "guess_away",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "lock_fixture",
+      "discriminator": [
+        71,
+        82,
+        215,
+        2,
+        211,
+        8,
+        142,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "validate_score",
+      "discriminator": [
+        66,
+        199,
+        180,
+        113,
+        186,
+        118,
+        95,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "daily_scores_merkle_roots",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "txoracle_program",
+          "writable": false,
+          "signer": false
+        }
+      ],
+      "args": [
+        {
+          "name": "payload",
+          "type": {
+            "defined": {
+              "name": "StatValidationInputV3"
+            }
+          }
+        },
+        {
+          "name": "home",
+          "type": "u8"
+        },
+        {
+          "name": "away",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "submit_settlement",
+      "discriminator": [
+        255,
+        231,
+        47,
+        245,
+        40,
+        161,
+        95,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": [
+        {
+          "name": "median_d",
+          "type": "u64"
+        },
+        {
+          "name": "platform_cut",
+          "type": "u64"
+        },
+        {
+          "name": "entries",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "SettlementEntry"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "compute_distances_batch",
+      "discriminator": [
+        120,
+        218,
+        56,
+        175,
+        206,
+        111,
+        169,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "verify_median_candidate",
+      "discriminator": [
+        73,
+        108,
+        208,
+        11,
+        96,
+        200,
+        50,
+        229
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": [
+        {
+          "name": "candidate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "finalize_median",
+      "discriminator": [
+        119,
+        214,
+        5,
+        92,
+        188,
+        234,
+        137,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle_batch",
+      "discriminator": [
+        22,
+        2,
+        21,
+        223,
+        225,
+        122,
+        163,
+        214
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "compute_payouts_batch",
+      "discriminator": [
+        70,
+        154,
+        143,
+        186,
+        209,
+        225,
+        90,
+        211
+      ],
+      "accounts": [
+        {
+          "name": "keeper",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": true,
+          "signer": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_payout",
+      "discriminator": [
+        127,
+        240,
+        132,
+        62,
+        227,
+        198,
+        146,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "staker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fixture",
+          "writable": false,
+          "signer": false
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "staker_usdc",
+          "writable": true,
+          "signer": false
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "signer": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Fixture",
+      "discriminator": [
+        46,
+        254,
+        24,
+        43,
+        40,
+        44,
+        141,
+        197
+      ]
+    },
+    {
+      "name": "StakePosition",
+      "discriminator": [
+        78,
+        165,
+        30,
+        111,
+        171,
+        125,
+        11,
+        220
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "StatValidationInputV3",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "fixture_summary",
+            "type": {
+              "defined": {
+                "name": "ScoresBatchSummary"
+              }
+            }
+          },
+          {
+            "name": "fixture_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "main_tree_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "event_stat_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "leaves",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "StatLeaf"
+                }
+              }
+            }
+          },
+          {
+            "name": "multiproof_hashes",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "leaf_indices",
+            "type": {
+              "vec": "u32"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoresBatchSummary",
+      "docs": [
+        "The summary for a single fixture's scores events within a 5-minute batch.",
+        "This contains the root of the sub-tree of all events for that fixture."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "update_stats",
+            "type": {
+              "defined": {
+                "name": "ScoresUpdateStats"
+              }
+            }
+          },
+          {
+            "name": "events_sub_tree_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoresUpdateStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "update_count",
+            "type": "i32"
+          },
+          {
+            "name": "min_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "max_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProofNode",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "is_right_sibling",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StatLeaf",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stat",
+            "type": {
+              "defined": {
+                "name": "ScoreStat"
+              }
+            }
+          },
+          {
+            "name": "stat_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoreStat",
+      "docs": [
+        "The on-chain representation of a single, provable key-value statistic.",
+        "This is the leaf of the inner-most Merkle tree."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "type": "u32"
+          },
+          {
+            "name": "value",
+            "type": "i32"
+          },
+          {
+            "name": "period",
+            "type": "i32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DistParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "p",
+            "type": "u64"
+          },
+          {
+            "name": "w_gd",
+            "type": "u64"
+          },
+          {
+            "name": "w_tg",
+            "type": "u64"
+          },
+          {
+            "name": "w_cs",
+            "type": "u64"
+          },
+          {
+            "name": "cap_gd",
+            "type": "u8"
+          },
+          {
+            "name": "cap_tg",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayoutParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "gamma",
+            "type": "u32"
+          },
+          {
+            "name": "take_rate_bps",
+            "type": "u16"
+          },
+          {
+            "name": "cap_multiple",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettlementEntry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "distance_d",
+            "type": "u64"
+          },
+          {
+            "name": "is_winner",
+            "type": "bool"
+          },
+          {
+            "name": "accuracy_a",
+            "type": "u128"
+          },
+          {
+            "name": "payout_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FixtureStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "ScoreValidated"
+          },
+          {
+            "name": "DistancesComputed"
+          },
+          {
+            "name": "MedianVerified"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Void"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Fixture",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "txline_fixture_id",
+            "type": "u64"
+          },
+          {
+            "name": "lock_time",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "FixtureStatus"
+              }
+            }
+          },
+          {
+            "name": "dist_params",
+            "type": {
+              "defined": {
+                "name": "DistParams"
+              }
+            }
+          },
+          {
+            "name": "payout_params",
+            "type": {
+              "defined": {
+                "name": "PayoutParams"
+              }
+            }
+          },
+          {
+            "name": "actual_home",
+            "type": "u8"
+          },
+          {
+            "name": "actual_away",
+            "type": "u8"
+          },
+          {
+            "name": "total_pool",
+            "type": "u64"
+          },
+          {
+            "name": "staker_count",
+            "type": "u16"
+          },
+          {
+            "name": "usdc_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "distances_computed_count",
+            "type": "u16"
+          },
+          {
+            "name": "running_min_d",
+            "type": "u64"
+          },
+          {
+            "name": "running_max_d",
+            "type": "u64"
+          },
+          {
+            "name": "running_count_at_min",
+            "type": "u16"
+          },
+          {
+            "name": "median_candidate",
+            "type": "u64"
+          },
+          {
+            "name": "median_count_below",
+            "type": "u16"
+          },
+          {
+            "name": "median_count_equal",
+            "type": "u16"
+          },
+          {
+            "name": "median_verify_count",
+            "type": "u16"
+          },
+          {
+            "name": "median_d",
+            "type": "u64"
+          },
+          {
+            "name": "median_verified",
+            "type": "bool"
+          },
+          {
+            "name": "coalition_mode",
+            "type": "bool"
+          },
+          {
+            "name": "winners_processed_count",
+            "type": "u16"
+          },
+          {
+            "name": "sum_a",
+            "type": "u128"
+          },
+          {
+            "name": "losers_stake_sum",
+            "type": "u64"
+          },
+          {
+            "name": "dividend_pool",
+            "type": "u64"
+          },
+          {
+            "name": "platform_cut",
+            "type": "u64"
+          },
+          {
+            "name": "waterfill_round",
+            "type": "u8"
+          },
+          {
+            "name": "capped_gain_sum",
+            "type": "u64"
+          },
+          {
+            "name": "capped_a_sum",
+            "type": "u128"
+          },
+          {
+            "name": "payouts_finalized_count",
+            "type": "u16"
+          },
+          {
+            "name": "undistributed",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakePosition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture",
+            "type": "pubkey"
+          },
+          {
+            "name": "staker",
+            "type": "pubkey"
+          },
+          {
+            "name": "guess_home",
+            "type": "u8"
+          },
+          {
+            "name": "guess_away",
+            "type": "u8"
+          },
+          {
+            "name": "stake_amount",
+            "type": "u64"
+          },
+          {
+            "name": "distance_d",
+            "type": "u64"
+          },
+          {
+            "name": "is_winner",
+            "type": "bool"
+          },
+          {
+            "name": "accuracy_a",
+            "type": "u128"
+          },
+          {
+            "name": "capped",
+            "type": "bool"
+          },
+          {
+            "name": "payout_amount",
+            "type": "u64"
+          },
+          {
+            "name": "claimed",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Chain-agnostic settlement engine for Player Perps — Market A.
+# Pure Rust, no Solana deps, fixed-point integer math (no floats).
+# This is the single source of truth for the D/S distance formula and the
+# Trepa median-gate + accuracy-weight payout, shared by the on-chain program
+# and the off-chain keeper. Multichain plan §2: only escrow is chain-specific;
+# this math is not.
+[package]
+name = "engine"
+version = "0.1.0"
+edition = "2021"
+description = "Player Perps Market A — fixed-point distance + Trepa settlement engine"
+
+[lib]
+name = "engine"
+path = "src/lib.rs"
+
+# Own workspace root so `cargo test` here never has to resolve the Anchor
+# program's Solana dependencies (which need the BPF toolchain, absent locally).
+[workspace]

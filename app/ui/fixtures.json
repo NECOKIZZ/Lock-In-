@@ -1,0 +1,63 @@
+{
+ "updated": 1784072192081,
+ "markets": [
+  {
+   "fixtureId": 18237038,
+   "pda": "ZTwgBLx1k9xHiTnYFbS1rMLMFKSF3mfvis5iU5Tfb2D",
+   "escrow": "98SJTnLL9JNWzVT6NGKnFFKMJEQYgSsDJ27ykPjRJ2tU",
+   "home": "France",
+   "away": "Spain",
+   "homeId": 1999,
+   "awayId": 3021,
+   "competition": "World Cup",
+   "kickoff": 1784055600000,
+   "lockTime": 1784055600,
+   "listedAt": 1784053336183,
+   "state": "Void",
+   "stakerCount": 0,
+   "totalPool": 0,
+   "actualHome": 0,
+   "actualAway": 2,
+   "validateSig": "3Q4nUPuBGy7QLSGqixn34HcDGQPBZazWedC4r4xUt7t7pQVj35zPBipPqQ7uDqn68AtvWmt9mtP71THUT6Zvevhg",
+   "settleSig": "g7HYc96p8DsxoXt58xUgA5DJmhXEqQmxRkAbyQMjRaUWeCEDjBP1rXJw1M5ZnP5WFPAeyMCMHUm8XugWQjZzf6n",
+   "proofSeq": 1026
+  },
+  {
+   "fixtureId": 18241006,
+   "pda": "FCixPWYfHeAfD4Jkkh2r3FzYJBCLj6qwvHf3j26sxtUr",
+   "escrow": "EKxhCytgCpoi3dtNYbdfBCXpmv68vxWHG91myqbbFEQ3",
+   "home": "England",
+   "away": "Argentina",
+   "homeId": 1888,
+   "awayId": 1489,
+   "competition": "World Cup",
+   "kickoff": 1784142000000,
+   "lockTime": 1784142000,
+   "listedAt": 1784053338162,
+   "state": "Open",
+   "stakerCount": 0,
+   "totalPool": 0
+  },
+  {
+   "fixtureId": 18222446,
+   "pda": "8RoXYBKsanp9M7HX4vz1CUPhonQjQw8BTtAEQdTLmSjZ",
+   "escrow": "HX9UMhtUifvDY7CNdhDFP3p9aBmuAnDCNvGHBLw8sp7f",
+   "home": "Monitor",
+   "away": "Test",
+   "homeId": 0,
+   "awayId": 0,
+   "competition": "Devnet sample (finalised)",
+   "kickoff": 1784072175000,
+   "lockTime": 1784072175,
+   "listedAt": 1784072095095,
+   "state": "Settled",
+   "stakerCount": 3,
+   "totalPool": 100000000,
+   "actualHome": 3,
+   "actualAway": 1,
+   "validateSig": "3g81NgBMkNEmd1A4su7VcSFojD3K3nhdnhDHYwDif16MyDuKBraugAH2Bg1XvsjTm8nZVysm5ga6na96haNBN4wU",
+   "settleSig": "f7Pffhm9bJsWzzriqNWH2XhPNuy7ktFk8n5rAPTKYqiejG7i4q9XowKwVacU3uzRwW84dRUGwgaDGEuTNXxmhmR",
+   "proofSeq": 1306
+  }
+ ]
+}

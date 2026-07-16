@@ -1,0 +1,82 @@
+{
+ "note": "Pre-encoded validate_stat_v3 ixs for in-browser simulation against LIVE devnet txoracle. Generated 2026-07-14T18:32:03.873Z",
+ "txoracle": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+ "rootPda": "9r38iAd4MyQn7DHEGNGkH4myRJHtHT95mfnndCZ25dkC",
+ "fixtureId": 18218149,
+ "seq": 1087,
+ "epochDay": 20644,
+ "trueScore": "2-1",
+ "ixValid": {
+  "programId": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+  "keys": [
+   {
+    "pubkey": "9r38iAd4MyQn7DHEGNGkH4myRJHtHT95mfnndCZ25dkC",
+    "isSigner": false,
+    "isWritable": false
+   }
+  ],
+  "dataBase64": "liWbWY2+TcuzENhNnwEAAKX8FQEAAAAAAQAAALMQ2E2fAQAAsxDYTZ8BAAAKarhZFKaRTxhJVDOjh47td0gyqwSaLS7aVywC5pIpgQEAAAAIX7MIAlUybVs7gPDc2NP9i282LwEmTO0qJgU5kGXMIQABAAAAC+I9BCxMT9yEnwy6f2CtjJHnG+iCL8Eg9J/IPEQo3tEAQa/Dv6cISN3qfmXoiSWx8MNk2vjQzELQc0HfRb375cUCAAAAAQAAAAIAAABkAAAAAAAAAAIAAAABAAAAZAAAAAAAAAAEAAAAuVEjD5iTC3i/gkkZi7B34phMVYJ3yXAUj0AnVRBr4JwBuTEVPHLoiLjHoKrIPJHUPXdiv7e3vI25kjtNQx01wEgBaNRL9WLuSR5TMGaYv3NsY1qlajmeIOOgeyEO3yTV9BQBAT09X8BNdk++32F2EL0uiNhx2vwu7jQbZHW4ZS8YLhMBAgAAACAAAAAhAAAAAAAAAAACAAAAAAACAAAAAgABAQAAAAI="
+ },
+ "ixTampered": {
+  "programId": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+  "keys": [
+   {
+    "pubkey": "9r38iAd4MyQn7DHEGNGkH4myRJHtHT95mfnndCZ25dkC",
+    "isSigner": false,
+    "isWritable": false
+   }
+  ],
+  "dataBase64": "liWbWY2+TcuzENhNnwEAAKX8FQEAAAAAAQAAALMQ2E2fAQAAsxDYTZ8BAAAKarhZFKaRTxhJVDOjh47td0gyqwSaLS7aVywC5pIpgQEAAAAIX7MIAlUybVs7gPDc2NP9i282LwEmTO0qJgU5kGXMIQABAAAAC+I9BCxMT9yEnwy6f2CtjJHnG+iCL8Eg9J/IPEQo3tEAQa/Dv6cISN3qfmXoiSWx8MNk2vjQzELQc0HfRb375cUCAAAAAQAAAAIAAABkAAAAAAAAAAIAAAABAAAAZAAAAAAAAAAEAAAAuVEjD5iTC3i/gkkZi7B34phMVYJ3yXAUj0AnVRBr4JwBuTEVPHLoiLjHoKrIPJHUPXdiv7e3vI25kjtNQx01wEgBaNRL9WLuSR5TMGaYv3NsY1qlajmeIOOgeyEO3yTV9BQBAT09X8BNdk++32F2EL0uiNhx2vwu7jQbZHW4ZS8YLhMBAgAAACAAAAAhAAAAAAAAAAACAAAAAAADAAAAAgABAQAAAAI="
+ },
+ "proofMeta": {
+  "leaves": [
+   {
+    "key": 1,
+    "value": 2,
+    "period": 100
+   },
+   {
+    "key": 2,
+    "value": 1,
+    "period": 100
+   }
+  ],
+  "mainTreeProofLen": 1,
+  "subTreeProofLen": 1,
+  "multiproofLen": 4,
+  "eventStatRoot": [
+   65,
+   175,
+   195,
+   191,
+   167,
+   8,
+   72,
+   221,
+   234,
+   126,
+   101,
+   232,
+   137,
+   37,
+   177,
+   240,
+   195,
+   100,
+   218,
+   248,
+   208,
+   204,
+   66,
+   208,
+   115,
+   65,
+   223,
+   69,
+   189,
+   251,
+   229,
+   197
+  ]
+ }
+}

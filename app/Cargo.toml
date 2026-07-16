@@ -1,0 +1,15 @@
+# Anchor workspace for the on-chain program. The `engine` crate is its own
+# workspace root (so `cargo test -p engine` never pulls in Solana deps); the
+# program depends on it by path. Members here are the on-chain program(s) only.
+[workspace]
+members = ["programs/*"]
+# `engine` is its own workspace root (so `cargo test -p engine` needs no Solana
+# toolchain). Exclude it here to avoid a nested-workspace-root conflict; the
+# program still depends on it by path.
+exclude = ["engine"]
+resolver = "2"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1

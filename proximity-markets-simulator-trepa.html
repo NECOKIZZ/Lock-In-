@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Perps — Trepa-Model Settlement Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0E11;
+    --panel:#12171C;
+    --panel-2:#161C22;
+    --line:#232B32;
+    --text:#E7E9EA;
+    --dim:#8B96A1;
+    --dim-2:#5C6670;
+    --gold:#E8B04B;
+    --gold-dim:#4A3E24;
+    --teal:#3FB68B;
+    --red:#C4554D;
+    --c1:#E8B04B;
+    --c2:#3FB68B;
+    --c3:#5B8FA8;
+    --c4:#B0779A;
+    --c5:#C4554D;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:800px;margin:0 auto;padding:48px 24px 80px;}
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-size:28px;
+    font-weight:600;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    color:var(--dim);
+    font-size:14px;
+    line-height:1.55;
+    margin:0;
+    max-width:60ch;
+  }
+  .market-tabs{display:flex;gap:8px;margin-bottom:24px;}
+  .market-tab{
+    flex:1;
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.03em;
+    padding:12px 14px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--dim);
+    cursor:pointer;
+    text-align:center;
+  }
+  .market-tab b{display:block;font-family:var(--font-display);font-size:14px;color:var(--text);font-weight:600;margin-bottom:2px;}
+  .market-tab.active{border-color:var(--gold);background:rgba(232,176,75,0.06);}
+  .market-tab.active b{color:var(--gold);}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 22px 24px;
+    margin-bottom:16px;
+  }
+  .card-title{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--dim);
+    margin:0 0 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .card-title .hint{ text-transform:none; letter-spacing:0; color:var(--dim-2); font-size:11px; }
+  /* Fixture score */
+  .fixture-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+  }
+  .team{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .team label{font-size:12px;color:var(--dim);}
+  .stepper{display:flex;align-items:center;gap:10px;}
+  .stepper button{
+    width:30px;height:30px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:16px;
+    cursor:pointer;
+    line-height:1;
+  }
+  .stepper button:hover{border-color:var(--gold);color:var(--gold);}
+  .stepper .val{
+    font-family:var(--font-mono);
+    font-size:30px;
+    font-weight:600;
+    min-width:34px;
+    text-align:center;
+  }
+  .vs{font-family:var(--font-mono);color:var(--dim-2);font-size:14px;padding-top:20px;}
+  .scalar-fixture{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .scalar-fixture label{font-size:12px;color:var(--dim);}
+  .scalar-fixture input{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:26px;
+    font-weight:600;
+    padding:8px 14px;
+    width:140px;
+    text-align:center;
+  }
+  /* Params */
+  .params-row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:12px;color:var(--dim);}
+  .field input[type=number]{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:14px;
+    padding:8px 10px;
+    width:88px;
+  }
+  details{margin-top:18px;}
+  summary{
+    cursor:pointer;
+    font-size:12px;
+    color:var(--dim);
+    font-family:var(--font-mono);
+    letter-spacing:0.04em;
+  }
+  .adv-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px 16px;
+    margin-top:14px;
+  }
+  .adv-grid .field input{width:100%;}
+  /* Stakers */
+  .staker-row{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr 1.6fr;
+    gap:14px;
+    align-items:center;
+    padding:14px 0;
+    border-top:1px solid var(--line);
+  }
+  .staker-row:first-of-type{border-top:none;}
+  .staker-id{
+    width:26px;height:26px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:12px;font-weight:600;
+    color:#0B0E11;
+    margin-right:8px;
+  }
+  .staker-name-wrap{display:flex;align-items:center;}
+  .staker-name{
+    background:transparent;border:none;color:var(--text);
+    font-family:var(--font-body);font-size:14px;font-weight:500;
+    padding:4px 0;width:100%;
+  }
+  .staker-name:focus{outline:none;border-bottom:1px solid var(--gold);}
+  .units-wrap{display:flex;flex-direction:column;gap:4px;}
+  .units-input{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    color:var(--text);font-family:var(--font-mono);font-size:14px;
+    padding:7px 9px;width:74px;
+  }
+  .stake-preview{font-family:var(--font-mono);font-size:11px;color:var(--dim-2);}
+  .guess-steppers{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+  .mini-stepper{display:flex;align-items:center;gap:4px;}
+  .mini-stepper button{
+    width:22px;height:22px;border-radius:5px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--dim);font-family:var(--font-mono);
+    font-size:12px;cursor:pointer;line-height:1;
+  }
+  .mini-stepper button:hover{border-color:var(--gold);color:var(--gold);}
+  .mini-stepper .val{
+    font-family:var(--font-mono);font-size:15px;min-width:16px;text-align:center;
+  }
+  .dash{color:var(--dim-2);font-family:var(--font-mono);}
+  .scalar-guess-input{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    color:var(--text);font-family:var(--font-mono);font-size:14px;
+    padding:7px 9px;width:90px;text-align:right;
+    margin-left:auto;display:block;
+  }
+  /* End button */
+  .end-btn-wrap{display:flex;justify-content:center;margin:28px 0;}
+  #endBtn{
+    background:var(--gold);
+    color:#241a08;
+    border:none;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:15px;
+    padding:14px 34px;
+    border-radius:8px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  #endBtn:hover{background:#f0be63;}
+  #endBtn:active{transform:translateY(1px);}
+  /* Settlement */
+  #settlement{display:none;}
+  #settlement.show{display:block;}
+  .void-banner{
+    background:rgba(196,85,77,0.1); border:1px solid var(--red); color:var(--red);
+    font-family:var(--font-mono); font-size:13px; padding:14px 16px; border-radius:8px;
+    margin-bottom:16px;
+  }
+  .status-strip{
+    display:flex; gap:18px; flex-wrap:wrap;
+    font-family:var(--font-mono); font-size:12px; color:var(--dim);
+    padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--line);
+  }
+  .status-strip b{color:var(--text);}
+  .status-strip .coalition{color:var(--gold);}
+  table.ledger{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12.5px;}
+  table.ledger th{
+    text-align:right;color:var(--dim);font-weight:500;font-size:10.5px;
+    letter-spacing:0.04em;text-transform:uppercase;
+    padding:0 6px 10px;border-bottom:1px solid var(--line);
+  }
+  table.ledger th:first-child, table.ledger td:first-child{text-align:left;}
+  table.ledger td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right;}
+  table.ledger tr:last-child td{border-bottom:none;}
+  .name-cell{display:flex;align-items:center;gap:8px;text-align:left !important;}
+  .badge{
+    font-size:10px; padding:2px 7px; border-radius:10px; letter-spacing:0.03em;
+    font-family:var(--font-mono); text-transform:uppercase;
+  }
+  .badge.win{background:rgba(63,182,139,0.15); color:var(--teal);}
+  .badge.lose{background:rgba(196,85,77,0.15); color:var(--red);}
+  .roi-pos{color:var(--teal);}
+  .roi-neg{color:var(--red);}
+  .capped-flag{color:var(--gold); font-size:10px; margin-left:4px;}
+  .bars{margin-top:22px;}
+  .bar-label{
+    font-family:var(--font-mono);font-size:11px;color:var(--dim);
+    letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;
+  }
+  .bar-track{
+    display:flex;height:34px;border-radius:6px;overflow:hidden;
+    border:1px solid var(--line);margin-bottom:20px;
+  }
+  .bar-seg{
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:11px;color:rgba(0,0,0,0.55);
+    transition:width 0.9s cubic-bezier(.2,.8,.2,1);
+    white-space:nowrap;overflow:hidden;
+  }
+  .bar-seg.take{background:var(--dim-2) !important; color:var(--text) !important;}
+  .conserve-line{
+    font-family:var(--font-mono);font-size:12px;color:var(--dim);
+    text-align:center;margin-top:4px;
+  }
+  .conserve-line b{color:var(--text);}
+  .formula-strip{
+    margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
+    font-family:var(--font-mono);font-size:11px;color:var(--dim-2);line-height:1.7;
+  }
+  @media (max-width:600px){
+    .staker-row{grid-template-columns:1fr;gap:8px;}
+    .guess-steppers{justify-content:flex-start;}
+    .scalar-guess-input{margin-left:0;}
+    .adv-grid{grid-template-columns:repeat(2,1fr);}
+    table.ledger{font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Player Perps · Trepa-mapped settlement</div>
+    <h1>Settlement Simulator</h1>
+    <p>Median-error win gate, then a steep accuracy-weight curve (γ=6) splits the losers' stakes among whoever cleared the median — capped at 100× with water-filling, exactly like Trepa's live mechanism. Same <code>D</code>/<code>S</code> formulas as before; only the payout stage changed.</p>
+  </header>
+
+  <div class="market-tabs">
+    <div class="market-tab active" data-market="A"><b>Market A</b>Full-time score proximity</div>
+    <div class="market-tab" data-market="B"><b>Market B</b>Player performance proximity</div>
+  </div>
+
+  <!-- FIXTURE -->
+  <div class="card">
+    <div class="card-title" id="fixtureTitle">Fixture result (actual)</div>
+    <div id="fixtureA" class="fixture-row">
+      <div class="team">
+        <label>Home</label>
+        <div class="stepper" data-target="actualH">
+          <button data-dir="-1">−</button>
+          <span class="val">2</span>
+          <button data-dir="1">+</button>
+        </div>
+      </div>
+      <div class="vs">–</div>
+      <div class="team">
+        <label>Away</label>
+        <div class="stepper" data-target="actualA">
+          <button data-dir="-1">−</button>
+          <span class="val">1</span>
+          <button data-dir="1">+</button>
+        </div>
+      </div>
+    </div>
+    <div id="fixtureB" class="scalar-fixture" style="display:none;">
+      <label>Actual performance score</label>
+      <input type="number" id="actualScore" value="8.5" step="0.5">
+    </div>
+  </div>
+
+  <!-- PARAMS -->
+  <div class="card">
+    <div class="card-title">Escrow &amp; payout parameters<span class="hint">Trepa defaults shown — tunable</span></div>
+    <div class="params-row">
+      <div class="field">
+        <label>Unit value ($)</label>
+        <input type="number" id="unitValue" value="5" min="0.01" step="any">
+      </div>
+      <div class="field">
+        <label>Accuracy exponent γ</label>
+        <input type="number" id="gamma" value="6" min="1" step="1">
+      </div>
+      <div class="field">
+        <label>Platform take on losers (%)</label>
+        <input type="number" id="takeRate" value="20" min="0" max="90" step="1">
+      </div>
+      <div class="field">
+        <label>Cap (× stake)</label>
+        <input type="number" id="capMultiple" value="100" min="1" step="1">
+      </div>
+    </div>
+    <details id="advDetailsA">
+      <summary>Advanced — Market A distance formula weights (§1.3, tunable)</summary>
+      <div class="adv-grid">
+        <div class="field"><label>P (wrong-outcome penalty)</label><input type="number" id="p_P" value="4.0" step="0.1"></div>
+        <div class="field"><label>W_GD (goal-diff weight)</label><input type="number" id="p_WGD" value="1.0" step="0.1"></div>
+        <div class="field"><label>W_TG (total-goals weight)</label><input type="number" id="p_WTG" value="0.5" step="0.1"></div>
+        <div class="field"><label>W_CS (clean-sheet weight)</label><input type="number" id="p_WCS" value="0.25" step="0.05"></div>
+        <div class="field"><label>CAP_GD</label><input type="number" id="p_capGD" value="3" step="1"></div>
+        <div class="field"><label>CAP_TG</label><input type="number" id="p_capTG" value="4" step="1"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- STAKERS -->
+  <div class="card">
+    <div class="card-title">Stakers (5)</div>
+    <div id="stakerList"></div>
+  </div>
+
+  <div class="end-btn-wrap">
+    <button id="endBtn">Settle market →</button>
+  </div>
+
+  <!-- SETTLEMENT -->
+  <div class="card" id="settlement">
+    <div class="card-title">Settlement</div>
+    <div id="voidBanner" class="void-banner" style="display:none;"></div>
+    <div id="statusStrip" class="status-strip"></div>
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th>Trader</th><th>Guess</th><th>D</th><th>r</th><th>a (weight)</th><th>Stake</th><th>Payout</th><th>ROI</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerBody"></tbody>
+    </table>
+
+    <div class="bars">
+      <div class="bar-label">Pool in (by stake)</div>
+      <div class="bar-track" id="barIn"></div>
+      <div class="bar-label">Payout out (winners) + platform take</div>
+      <div class="bar-track" id="barOut"></div>
+      <div class="conserve-line" id="conserveLine"></div>
+    </div>
+
+    <div class="formula-strip" id="formulaStrip"></div>
+  </div>
+
+</div>
+
+<script>
+const COLORS = ['#E8B04B','#3FB68B','#5B8FA8','#B0779A','#C4554D'];
+const DEFAULT_NAMES = ['Trader A','Trader B','Trader C','Trader D','Trader E'];
+
+// Market A defaults: match spec's own §4.2 worked example (actual 2-1)
+const DEFAULTS_A = [
+  { units: 10, gh: 2, ga: 1 },
+  { units: 6,  gh: 2, ga: 0 },
+  { units: 8,  gh: 3, ga: 1 },
+  { units: 4,  gh: 1, ga: 1 },
+  { units: 12, gh: 1, ga: 2 },
+];
+// Market B defaults: match spec's own §4 leaderboard example (actual 8.5)
+const DEFAULTS_B = [
+  { units: 10, guess: 9.0 },
+  { units: 6,  guess: 6.0 },
+  { units: 8,  guess: 8.5 },
+  { units: 4,  guess: 12.0 },
+  { units: 12, guess: 2.0 },
+];
+
+let MARKET = 'A';
+const stakerListEl = document.getElementById('stakerList');
+
+function buildStakerRow(i){
+  const dA = DEFAULTS_A[i], dB = DEFAULTS_B[i];
+  const row = document.createElement('div');
+  row.className = 'staker-row';
+  row.innerHTML = `
+    <div class="staker-name-wrap">
+      <span class="staker-id" style="background:${COLORS[i]}">${i+1}</span>
+      <input class="staker-name" data-i="${i}" value="${DEFAULT_NAMES[i]}">
+    </div>
+    <div class="units-wrap">
+      <input class="units-input" type="number" min="0" step="any" data-i="${i}" data-role="units" value="${dA.units}">
+      <span class="stake-preview" data-i="${i}" data-role="stakePreview">= $${(dA.units*5).toFixed(2)}</span>
+    </div>
+    <div class="guess-cell" data-i="${i}">
+      <div class="guess-steppers" data-role="guessA">
+        <div class="mini-stepper" data-role="gh">
+          <button data-dir="-1">−</button><span class="val">${dA.gh}</span><button data-dir="1">+</button>
+        </div>
+        <span class="dash">–</span>
+        <div class="mini-stepper" data-role="ga">
+          <button data-dir="-1">−</button><span class="val">${dA.ga}</span><button data-dir="1">+</button>
+        </div>
+      </div>
+      <input class="scalar-guess-input" data-role="guessB" type="number" step="0.5" value="${dB.guess}" style="display:none;">
+    </div>
+  `;
+  return row;
+}
+
+for(let i=0;i<5;i++){ stakerListEl.appendChild(buildStakerRow(i)); }
+
+// --- generic steppers (fixture + guesses) ---
+function wireStepper(container, min=0, max=15){
+  container.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const valEl = btn.parentElement.querySelector('.val');
+      let v = parseInt(valEl.textContent,10);
+      v += parseInt(btn.dataset.dir,10);
+      v = Math.max(min, Math.min(max, v));
+      valEl.textContent = v;
+    });
+  });
+}
+document.querySelectorAll('.stepper').forEach(s=>wireStepper(s));
+document.querySelectorAll('.mini-stepper').forEach(s=>wireStepper(s));
+
+// --- market tab switching ---
+document.querySelectorAll('.market-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.market-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    MARKET = tab.dataset.market;
+    document.getElementById('fixtureA').style.display = MARKET==='A' ? 'flex' : 'none';
+    document.getElementById('fixtureB').style.display = MARKET==='B' ? 'flex' : 'none';
+    document.getElementById('advDetailsA').style.display = MARKET==='A' ? '' : 'none';
+    document.querySelectorAll('[data-role="guessA"]').forEach(el=>el.style.display = MARKET==='A' ? 'flex' : 'none');
+    document.querySelectorAll('[data-role="guessB"]').forEach(el=>el.style.display = MARKET==='B' ? 'block' : 'none');
+    document.getElementById('settlement').classList.remove('show');
+  });
+});
+
+// --- unit value live preview ---
+function refreshStakePreviews(){
+  const uv = parseFloat(document.getElementById('unitValue').value) || 0;
+  document.querySelectorAll('[data-role="stakePreview"]').forEach(el=>{
+    const i = el.dataset.i;
+    const unitsInput = document.querySelector(`.units-input[data-i="${i}"]`);
+    const units = parseFloat(unitsInput.value) || 0;
+    el.textContent = `= $${(units*uv).toFixed(2)}`;
+  });
+}
+document.getElementById('unitValue').addEventListener('input', refreshStakePreviews);
+stakerListEl.addEventListener('input', (e)=>{
+  if(e.target.dataset.role === 'units') refreshStakePreviews();
+});
+
+// --- distance formulas ---
+function outcome(gd){ return gd>0 ? 'H' : gd<0 ? 'A' : 'D'; }
+
+function distanceA(gh, ga, ah, aa, params){
+  const gdGuess = gh-ga, gdActual = ah-aa;
+  const tgGuess = gh+ga, tgActual = ah+aa;
+  const correct = outcome(gdGuess) === outcome(gdActual) ? 1 : 0;
+  const dGD = Math.min(Math.abs(gdGuess-gdActual), params.capGD);
+  const dTG = Math.min(Math.abs(tgGuess-tgActual), params.capTG);
+  const csHomeGuess = ga===0?1:0, csHomeActual = aa===0?1:0;
+  const csAwayGuess = gh===0?1:0, csAwayActual = ah===0?1:0;
+  return (1-correct)*params.P + params.WGD*dGD + params.WTG*dTG +
+    params.WCS*(Math.abs(csHomeGuess-csHomeActual)+Math.abs(csAwayGuess-csAwayActual));
+}
+function distanceB(guess, actual){
+  return Math.abs(guess-actual);
+}
+
+// --- Trepa settlement engine ---
+// D_i plays the role of Trepa's e_i (raw error). Median-of-D gates who
+// wins; accuracy weight a_i = (1/(1+D_i/m))^gamma splits the losers'
+// (post-take) stakes among winners, capped and water-filled.
+function settleTrepa(traders, {gamma, capMultiple, takeRate}) {
+  const N = traders.length;
+  if (N <= 1) return { voidReason: 'Fewer than 2 stakers — round is void, everyone refunded.' };
+  const Ds = traders.map(t=>t.D).slice().sort((a,b)=>a-b);
+  if (Ds.every(d => Math.abs(d-Ds[0]) < 1e-9)) return { voidReason: 'Every staker landed on the exact same D — round is void, everyone refunded.' };
+
+  const minD = Ds[0];
+  const countAtMin = traders.filter(t => Math.abs(t.D-minD) < 1e-9).length;
+  const bestCoalition = countAtMin >= N/2;
+
+  const k = Math.floor((N+1)/2);
+  const m = Ds[k-1];
+
+  let winners, losers;
+  if (bestCoalition) {
+    winners = traders.filter(t => Math.abs(t.D-minD) < 1e-9);
+    losers = traders.filter(t => Math.abs(t.D-minD) >= 1e-9);
+  } else {
+    winners = traders.filter(t => t.D < m - 1e-9);
+    losers = traders.filter(t => t.D >= m - 1e-9);
+  }
+
+  winners.forEach(t => {
+    t.r = m === 0 ? 0 : t.D / m;
+    t.a = Math.pow(1/(1+t.r), gamma);
+  });
+
+  const losersStake = losers.reduce((s,t)=>s+t.stake, 0);
+  const platformCut = losersStake * takeRate;
+  const pool = losersStake - platformCut;
+
+  let active = winners.map(t => ({ ref:t, cap: t.stake*capMultiple, capped:false }));
+  let remaining = pool;
+  let safety = 0;
+  while (true) {
+    safety++; if (safety>100) break;
+    const activeUncapped = active.filter(t=>!t.capped);
+    const sumW = activeUncapped.reduce((s,t)=>s+t.ref.a,0);
+    if (sumW <= 0 || activeUncapped.length===0) break;
+    const alpha = remaining / sumW;
+    let anyCapped = false;
+    activeUncapped.forEach(t => {
+      const naive = alpha * t.ref.a;
+      if (naive > t.cap + 1e-9) {
+        t.ref.gain = t.cap;
+        t.capped = true;
+        remaining -= t.cap;
+        anyCapped = true;
+      }
+    });
+    if (!anyCapped) {
+      activeUncapped.forEach(t => { t.ref.gain = alpha * t.ref.a; });
+      remaining = 0;
+      break;
+    }
+  }
+  const undistributed = Math.max(0, remaining);
+
+  traders.forEach(t => {
+    if (winners.includes(t)) {
+      t.gain = t.gain || 0;
+      t.payout = t.stake + t.gain;
+      t.result = 'win';
+    } else {
+      t.gain = 0;
+      t.payout = 0;
+      t.result = 'lose';
+    }
+  });
+
+  return { m, minD, countAtMin, bestCoalition, k, losersStake, platformCut, pool, undistributed, winners, losers, traders };
+}
+
+document.getElementById('endBtn').addEventListener('click', ()=>{
+  const unitValue = parseFloat(document.getElementById('unitValue').value) || 0;
+  const gamma = parseFloat(document.getElementById('gamma').value) || 6;
+  const takeRate = (parseFloat(document.getElementById('takeRate').value) || 0) / 100;
+  const capMultiple = parseFloat(document.getElementById('capMultiple').value) || 100;
+
+  const distParams = {
+    P: parseFloat(document.getElementById('p_P').value),
+    WGD: parseFloat(document.getElementById('p_WGD').value),
+    WTG: parseFloat(document.getElementById('p_WTG').value),
+    WCS: parseFloat(document.getElementById('p_WCS').value),
+    capGD: parseFloat(document.getElementById('p_capGD').value),
+    capTG: parseFloat(document.getElementById('p_capTG').value),
+  };
+
+  let actualH, actualA, actualScore;
+  if (MARKET === 'A') {
+    actualH = parseInt(document.querySelector('[data-target="actualH"] .val').textContent,10);
+    actualA = parseInt(document.querySelector('[data-target="actualA"] .val').textContent,10);
+  } else {
+    actualScore = parseFloat(document.getElementById('actualScore').value) || 0;
+  }
+
+  const traders = [];
+  for(let i=0;i<5;i++){
+    const name = document.querySelector(`.staker-name[data-i="${i}"]`).value || DEFAULT_NAMES[i];
+    const units = parseFloat(document.querySelector(`.units-input[data-i="${i}"]`).value) || 0;
+    const stake = units * unitValue;
+    let guessLabel, D;
+    if (MARKET === 'A') {
+      const cell = document.querySelector(`.guess-cell[data-i="${i}"]`);
+      const gh = parseInt(cell.querySelector('[data-role="gh"] .val').textContent,10);
+      const ga = parseInt(cell.querySelector('[data-role="ga"] .val').textContent,10);
+      guessLabel = `${gh}-${ga}`;
+      D = distanceA(gh, ga, actualH, actualA, distParams);
+    } else {
+      const cell = document.querySelector(`.guess-cell[data-i="${i}"]`);
+      const guess = parseFloat(cell.querySelector('[data-role="guessB"]').value) || 0;
+      guessLabel = guess.toFixed(1);
+      D = distanceB(guess, actualScore);
+    }
+    D = Math.round(D*100)/100;
+    const S = 1/(1+D);
+    traders.push({i, name, units, guessLabel, stake, D, S, color: COLORS[i]});
+  }
+
+  const result = settleTrepa(traders, {gamma, capMultiple, takeRate});
+
+  const voidBanner = document.getElementById('voidBanner');
+  const statusStrip = document.getElementById('statusStrip');
+  const tbody = document.getElementById('ledgerBody');
+  const barIn = document.getElementById('barIn');
+  const barOut = document.getElementById('barOut');
+
+  if (result.voidReason) {
+    voidBanner.style.display = 'block';
+    voidBanner.textContent = result.voidReason;
+    statusStrip.innerHTML = '';
+    tbody.innerHTML = '';
+    barIn.innerHTML = ''; barOut.innerHTML = '';
+    document.getElementById('conserveLine').textContent = '';
+    document.getElementById('formulaStrip').textContent = '';
+    document.getElementById('settlement').classList.add('show');
+    document.getElementById('settlement').scrollIntoView({behavior:'smooth', block:'nearest'});
+    return;
+  }
+  voidBanner.style.display = 'none';
+
+  const grossPool = traders.reduce((s,t)=>s+t.stake,0);
+  traders.forEach(t=>{ t.roi = t.stake>0 ? t.payout/t.stake : 0; });
+
+  statusStrip.innerHTML = `
+    <span>Median D (m) = <b>${result.m.toFixed(2)}</b></span>
+    <span>Winners <b>${result.winners.length}</b> / Losers <b>${result.losers.length}</b></span>
+    ${result.bestCoalition ? `<span class="coalition">Best-coalition exception triggered — ${result.countAtMin} tied at minimum D</span>` : ''}
+    <span>Platform take <b>$${result.platformCut.toFixed(2)}</b></span>
+    ${result.undistributed>0.005 ? `<span class="coalition">Undistributed residual $${result.undistributed.toFixed(2)} (all winners hit cap) → routed to platform</span>` : ''}
+  `;
+
+  const ranked = [...traders].sort((a,b)=>a.D-b.D);
+  tbody.innerHTML = '';
+  ranked.forEach(t=>{
+    const tr = document.createElement('tr');
+    const roiClass = t.roi>=1 ? 'roi-pos' : 'roi-neg';
+    const badge = t.result==='win' ? '<span class="badge win">Win</span>' : '<span class="badge lose">Lose</span>';
+    tr.innerHTML = `
+      <td class="name-cell"><span class="staker-id" style="background:${t.color}">${t.i+1}</span>${t.name} ${badge}</td>
+      <td>${t.guessLabel}</td>
+      <td>${t.D.toFixed(2)}</td>
+      <td>${t.r!==undefined ? t.r.toFixed(3) : '—'}</td>
+      <td>${t.a!==undefined ? t.a.toFixed(4) : '—'}</td>
+      <td>$${t.stake.toFixed(2)}</td>
+      <td>$${t.payout.toFixed(2)}</td>
+      <td class="${roiClass}">${t.roi.toFixed(2)}×</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // bars: pool-in by stake; pool-out = winner payouts + platform take segment
+  barIn.innerHTML = ''; barOut.innerHTML = '';
+  traders.forEach(t=>{
+    const segIn = document.createElement('div');
+    segIn.className = 'bar-seg';
+    segIn.style.background = t.color;
+    segIn.style.width = grossPool>0 ? (100*t.stake/grossPool)+'%' : '0%';
+    segIn.textContent = grossPool>0 && (t.stake/grossPool)>0.08 ? `${t.i+1}` : '';
+    barIn.appendChild(segIn);
+
+    const segOut = document.createElement('div');
+    segOut.className = 'bar-seg';
+    segOut.style.background = t.color;
+    segOut.style.width = '0%';
+    segOut.textContent = '';
+    barOut.appendChild(segOut);
+  });
+  const takeSeg = document.createElement('div');
+  takeSeg.className = 'bar-seg take';
+  takeSeg.style.width = '0%';
+  takeSeg.textContent = '';
+  barOut.appendChild(takeSeg);
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const segs = barOut.querySelectorAll('.bar-seg');
+      traders.forEach((t,idx)=>{
+        const pct = grossPool>0 ? 100*t.payout/grossPool : 0;
+        segs[idx].style.width = pct+'%';
+        segs[idx].textContent = pct>8 ? `${t.i+1}` : '';
+      });
+      const takePct = grossPool>0 ? 100*result.platformCut/grossPool : 0;
+      segs[segs.length-1].style.width = takePct+'%';
+      segs[segs.length-1].textContent = takePct>8 ? 'take' : '';
+    });
+  });
+
+  const totalPayout = traders.reduce((s,t)=>s+t.payout,0);
+  document.getElementById('conserveLine').innerHTML =
+    `Pool <b>$${grossPool.toFixed(2)}</b> → winners <b>$${totalPayout.toFixed(2)}</b> + platform take <b>$${result.platformCut.toFixed(2)}</b>` +
+    (result.undistributed>0.005 ? ` + undistributed <b>$${result.undistributed.toFixed(2)}</b>` : '') +
+    ` — losers' stakes fund winners; the house only skims the losing side.`;
+
+  document.getElementById('formulaStrip').textContent =
+    `Win: D_i < median(D). r_i = D_i/m. a_i = (1/(1+r_i))^γ (γ=${gamma}).  ` +
+    `Pool = losers' stakes × (1−take).  gain_i = min(α·a_i, stake_i×${capMultiple}), water-filled.  payout_i = stake_i + gain_i (winners), 0 (losers).`;
+
+  document.getElementById('settlement').classList.add('show');
+  document.getElementById('settlement').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+</script>
+</body>
+</html>

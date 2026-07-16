@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Perps — Predict the score. Closest wins the pool.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ---- hero ---- */
+  .hero{padding:64px 0 30px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;}
+  @media(max-width:860px){.hero{grid-template-columns:1fr;padding-top:40px;}}
+  .hero h1{
+    font-family:var(--font-display);font-size:clamp(46px,6.5vw,76px);
+    line-height:0.98;margin:0 0 18px;letter-spacing:0.015em;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(120deg,#6EE896 10%,#3E9E64 60%,#7ED9A0 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.lede{color:var(--dim);font-size:16.5px;line-height:1.65;margin:0 0 26px;max-width:480px;}
+  .hero .cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .hero .proof{margin-top:22px;font-family:var(--font-mono);font-size:11px;color:var(--dim-2);letter-spacing:0.04em;}
+  .hero .proof a{color:var(--dim);border-bottom:1px dotted var(--dim-2);}
+
+  /* ---- how it works ---- */
+  .step-num{
+    font-family:var(--font-display);font-size:30px;color:var(--green-bright);
+    width:44px;height:44px;border-radius:12px;background:var(--green-deep);
+    border:1px solid var(--green-dark);display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+  }
+  .step h3{margin:0 0 8px;font-size:16px;}
+  .step p{margin:0;color:var(--dim);font-size:13.5px;line-height:1.6;}
+
+  /* ---- trustless strip ---- */
+  .trust{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:16px;}
+  .trust .shield{font-size:28px;}
+  .trust p{margin:0;color:var(--dim);font-size:13.5px;line-height:1.6;}
+  .trust p b{color:var(--text);}
+
+  /* ---- fixtures preview ---- */
+  .fx-card{display:flex;flex-direction:column;gap:12px;}
+  .fx-teams{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .fx-team{display:flex;flex-direction:column;align-items:center;gap:6px;width:84px;}
+  .fx-team .tname{font-family:var(--font-mono);font-size:11px;color:var(--dim);}
+  .fx-vs{font-family:var(--font-display);font-size:26px;color:var(--dim-2);}
+  .fx-meta{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:11px;color:var(--dim-2);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <span class="logo"><span class="ball"></span>PLAYER&nbsp;PERPS</span>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#fixtures">Fixtures</a>
+      <a href="#trustless">Why trustless</a>
+      <span class="net-pill">Solana · Devnet</span>
+      <a class="btn sm" href="app.html">Launch App</a>
+    </div>
+  </div>
+</nav>
+
+<header class="container hero">
+  <div>
+    <h1>PREDICT THE SCORE.<br><span class="grad">CLOSEST WINS</span> THE POOL.</h1>
+    <p class="lede">
+      Stake USDC on the exact full-time score. Everyone's guess is ranked by how close
+      it lands — beat the median and the losers' pool pays you, weighted by accuracy.
+      Settled trustlessly against cryptographic score proofs on Solana.
+    </p>
+    <div class="cta-row">
+      <a class="btn" href="app.html">⚡ Launch App — Connect Wallet</a>
+      <a class="btn ghost" href="#how">How it works</a>
+    </div>
+    <div class="proof">
+      LIVE ON DEVNET — program <a href="https://explorer.solana.com/address/6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26?cluster=devnet" target="_blank" rel="noopener">6krd…mE26</a>
+      · oracle proofs by TxLine (TxODDS)
+    </div>
+  </div>
+
+  <!-- IMAGE PLACEHOLDER: hero stadium shot, 1600x900 -->
+  <div class="ph hero-img">
+    <span class="ph-icon">🏟️</span>
+    <span class="ph-cap">hero image — stadium night shot · 1600×900</span>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="how">
+    <div class="section-label">How it works</div>
+    <div class="grid-3">
+      <div class="card step">
+        <div class="step-num">1</div>
+        <h3>Pick a score, stake USDC</h3>
+        <p>Choose the exact full-time score you believe in — 2–1, 0–0, anything — and
+        back it with a USDC stake before kick-off locks the market.</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">2</div>
+        <h3>Watch your live PnL</h3>
+        <p>Goals move the whole leaderboard in real time. See exactly what your stake
+        would pay if the match ended right now — like a ticking stock position.</p>
+      </div>
+      <div class="card step">
+        <div class="step-num">3</div>
+        <h3>Closest guesses get paid</h3>
+        <p>At full-time the final score is <em>proven on-chain</em>. Beat the median
+        distance and you split the losers' pool, weighted by how close you were.</p>
+      </div>
+    </div>
+
+    <div class="trust" id="trustless">
+      <span class="shield">🛡️</span>
+      <p><b>No referee to bribe.</b> Settlement runs against TxLine's Merkle-proven score
+      feed — the program verifies the final score cryptographically before a single cent
+      moves. A wrong score is <b>mathematically rejected</b>, not just "against the rules."
+      We proved it live: a tampered 3–1 proof fails on-chain, the real 2–1 passes.</p>
+    </div>
+  </section>
+
+  <section id="fixtures">
+    <div class="section-label">Featured fixtures — World Cup 2026</div>
+    <div class="grid-3">
+
+      <div class="card fx-card">
+        <!-- IMAGE PLACEHOLDER: match banner, 400x225 -->
+        <div class="ph thumb"><span class="ph-icon">📸</span><span class="ph-cap">match art · 400×225</span></div>
+        <div class="fx-teams">
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">MEX</span></div>
+          <span class="fx-vs">VS</span>
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">USA</span></div>
+        </div>
+        <div class="fx-meta"><span>GROUP A · SAT 21:00</span><span class="live-pill"><span class="live-dot"></span>LIVE</span></div>
+        <a class="btn sm" href="app.html">Enter market</a>
+      </div>
+
+      <div class="card fx-card">
+        <div class="ph thumb"><span class="ph-icon">📸</span><span class="ph-cap">match art · 400×225</span></div>
+        <div class="fx-teams">
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">BRA</span></div>
+          <span class="fx-vs">VS</span>
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">GER</span></div>
+        </div>
+        <div class="fx-meta"><span>GROUP C · SUN 18:00</span><span class="badge neutral">OPENS SOON</span></div>
+        <a class="btn sm ghost" href="app.html">Preview</a>
+      </div>
+
+      <div class="card fx-card">
+        <div class="ph thumb"><span class="ph-icon">📸</span><span class="ph-cap">match art · 400×225</span></div>
+        <div class="fx-teams">
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">ARG</span></div>
+          <span class="fx-vs">VS</span>
+          <div class="fx-team"><div class="ph crest"><span class="ph-icon">⚽</span></div><span class="tname">FRA</span></div>
+        </div>
+        <div class="fx-meta"><span>GROUP D · SUN 21:00</span><span class="badge neutral">OPENS SOON</span></div>
+        <a class="btn sm ghost" href="app.html">Preview</a>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">The pitch</div>
+    <!-- IMAGE PLACEHOLDER: wide banner (celebration / crowd), 1200x400 -->
+    <div class="ph banner">
+      <span class="ph-icon">🎉</span>
+      <span class="ph-cap">banner image — goal celebration · 1200×400</span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <span>Player Perps — proximity score markets on Solana.</span>
+    <span class="mono">escrow: USDC (SPL) · oracle: TxLine txoracle · settlement: Trepa median-gate</span>
+  </div>
+</footer>
+
+</body>
+</html>

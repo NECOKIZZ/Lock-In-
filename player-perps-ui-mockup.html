@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Perps — Match View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070B09;
+    --panel:#0D1410;
+    --panel-2:#121B15;
+    --line:#1D2B22;
+    --green-bright:#6EE896;
+    --green:#3E9E64;
+    --green-dark:#1B3A26;
+    --green-deep:#0F2418;
+    --loss:#C97361;
+    --loss-dark:#5A2E24;
+    --text:#EAF2EC;
+    --dim:#7E9186;
+    --dim-2:#4C5A51;
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:460px;margin:0 auto;padding:20px 16px 100px;position:relative;}
+
+  /* ---- header ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .comp{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;}
+  .live-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;
+    color:var(--green-bright);background:var(--green-deep);
+    padding:5px 10px;border-radius:20px;border:1px solid var(--green-dark);
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green-bright);animation:pulse-dot 1.6s ease-in-out infinite;}
+  @keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(110,232,150,0.5);}50%{opacity:0.6;box-shadow:0 0 0 4px rgba(110,232,150,0);}}
+
+  /* ---- fixture strip ---- */
+  .fixture-strip{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .team-mini{display:flex;flex-direction:column;align-items:center;gap:4px;width:80px;}
+  .team-mini .crest{width:28px;height:28px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);}
+  .team-mini .tname{font-size:11px;color:var(--dim);font-family:var(--font-mono);}
+  .live-score{font-family:var(--font-display);font-size:34px;letter-spacing:0.02em;display:flex;align-items:center;gap:10px;}
+  .live-score .clock{font-family:var(--font-mono);font-size:11px;color:var(--green-bright);display:block;text-align:center;margin-top:2px;letter-spacing:0.05em;}
+
+  /* ---- section label ---- */
+  .section-label{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--dim);margin:22px 0 10px;
+  }
+
+  /* ---- glide picker ---- */
+  .picker-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:22px 18px 18px;
+  }
+  .picker-row{display:flex;align-items:center;justify-content:center;gap:26px;}
+  .picker-col{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .picker-team{font-family:var(--font-mono);font-size:12px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;}
+  .glide-btn{
+    width:44px;height:44px;border-radius:12px;border:none;cursor:pointer;
+    background:var(--green);color:#04140A;
+    font-family:var(--font-display);font-size:22px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 0 var(--green-dark);
+    transition:transform .07s ease, box-shadow .07s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .glide-btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--green-dark);}
+  .glide-btn.minus{background:var(--panel-2);color:var(--text);box-shadow:0 5px 0 var(--line);}
+  .glide-btn.minus:active{box-shadow:0 0 0 var(--line);}
+  .digit-shell{
+    width:64px;height:78px;border-radius:14px;background:var(--panel-2);
+    border:1px solid var(--line);overflow:hidden;position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .digit{
+    font-family:var(--font-display);font-size:52px;color:var(--text);
+    transition:transform .18s cubic-bezier(.2,.9,.3,1), opacity .18s;
+  }
+  .digit.rolling{transform:translateY(-14px);opacity:0;}
+  .dash-sep{font-family:var(--font-display);font-size:40px;color:var(--dim-2);padding-bottom:6px;}
+
+  .lock-row{display:flex;justify-content:center;margin-top:20px;}
+  .btn-3d{
+    font-family:var(--font-body);font-weight:700;font-size:14px;letter-spacing:0.02em;
+    padding:14px 30px;border-radius:12px;border:none;cursor:pointer;
+    background:var(--green);color:#04140A;
+    box-shadow:0 6px 0 var(--green-dark);
+    transition:transform .08s ease, box-shadow .08s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-3d:active{transform:translateY(6px);box-shadow:0 0 0 var(--green-dark);}
+  .btn-3d.ghost{
+    background:var(--panel-2);color:var(--text);box-shadow:0 6px 0 var(--line);
+  }
+  .btn-3d.ghost:active{box-shadow:0 0 0 var(--line);}
+  .btn-3d.danger{background:var(--loss);color:#1A0906;box-shadow:0 6px 0 var(--loss-dark);}
+  .btn-3d.danger:active{box-shadow:0 0 0 var(--loss-dark);}
+
+  /* ---- PnL graph ---- */
+  .graph-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:18px 16px 8px;position:relative;overflow:hidden;
+  }
+  .graph-card.flash-win::before, .graph-card.flash-lose::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    animation:flash-fade .7s ease-out;
+  }
+  .graph-card.flash-win::before{background:radial-gradient(circle at 50% 30%, rgba(110,232,150,0.35), transparent 70%);}
+  .graph-card.flash-lose::before{background:radial-gradient(circle at 50% 30%, rgba(201,115,97,0.30), transparent 70%);}
+  @keyframes flash-fade{from{opacity:1;}to{opacity:0;}}
+
+  .graph-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .graph-head .label{font-family:var(--font-mono);font-size:11px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;}
+  .graph-head .value{font-family:var(--font-mono);font-size:20px;font-weight:600;}
+  .graph-head .value.pos{color:var(--green-bright);}
+  .graph-head .value.neg{color:var(--loss);}
+  svg{display:block;width:100%;height:auto;}
+  .breakeven-line{stroke:var(--dim-2);stroke-width:1;stroke-dasharray:3 4;}
+  .pnl-area{opacity:0.55;}
+  .pnl-line{fill:none;stroke-width:2.5;}
+  .goal-marker{stroke:var(--text);stroke-width:1;stroke-dasharray:2 3;opacity:0.5;}
+  .goal-label{font-family:var(--font-mono);font-size:9px;fill:var(--dim);}
+  .axis-label{font-family:var(--font-mono);font-size:9px;fill:var(--dim-2);}
+
+  /* ---- PnL cards ---- */
+  .card-row{display:flex;gap:10px;margin-top:14px;}
+  .pnl-card{
+    flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 14px;
+  }
+  .pnl-card .k{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+  .pnl-card .v{font-family:var(--font-mono);font-size:19px;font-weight:600;}
+  .pnl-card .v.pos{color:var(--green-bright);}
+  .pnl-card .v.neg{color:var(--loss);}
+  .pnl-card .sub{font-size:11px;color:var(--dim-2);margin-top:4px;font-family:var(--font-mono);}
+
+  .status-badge{
+    display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);
+    font-size:11px;padding:4px 10px;border-radius:20px;margin-top:12px;
+  }
+  .status-badge.winning{background:var(--green-deep);color:var(--green-bright);border:1px solid var(--green-dark);}
+  .status-badge.losing{background:rgba(90,46,36,0.35);color:var(--loss);border:1px solid var(--loss-dark);}
+
+  .cta-row{display:flex;gap:10px;margin-top:16px;}
+  .cta-row .btn-3d{flex:1;}
+
+  .demo-controls{
+    margin-top:28px;padding-top:16px;border-top:1px dashed var(--line);
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .demo-controls .tag{
+    font-family:var(--font-mono);font-size:10px;color:var(--dim-2);width:100%;margin-bottom:4px;
+    text-transform:uppercase;letter-spacing:0.08em;
+  }
+  .demo-btn{
+    font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:8px;
+    background:var(--panel-2);color:var(--dim);border:1px solid var(--line);cursor:pointer;
+  }
+  .demo-btn:hover{color:var(--text);border-color:var(--dim-2);}
+
+  @media (max-width:400px){
+    .picker-row{gap:14px;}
+    .digit-shell{width:56px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="comp">World Cup 2026 · Group A</span>
+    <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+  </div>
+
+  <div class="fixture-strip">
+    <div class="team-mini"><div class="crest"></div><span class="tname">MEX</span></div>
+    <div style="text-align:center;">
+      <div class="live-score" id="liveScoreDisplay">1 – 0</div>
+      <span class="clock" id="clockDisplay">62'</span>
+    </div>
+    <div class="team-mini"><div class="crest"></div><span class="tname">USA</span></div>
+  </div>
+
+  <div class="section-label">Your guess — full-time score</div>
+  <div class="picker-card">
+    <div class="picker-row">
+      <div class="picker-col">
+        <span class="picker-team">MEX</span>
+        <button class="glide-btn" onclick="adjust('home',1)">▲</button>
+        <div class="digit-shell"><span class="digit" id="homeDigit">2</span></div>
+        <button class="glide-btn minus" onclick="adjust('home',-1)">▼</button>
+      </div>
+      <div class="dash-sep">–</div>
+      <div class="picker-col">
+        <span class="picker-team">USA</span>
+        <button class="glide-btn" onclick="adjust('away',1)">▲</button>
+        <div class="digit-shell"><span class="digit" id="awayDigit">1</span></div>
+        <button class="glide-btn minus" onclick="adjust('away',-1)">▼</button>
+      </div>
+    </div>
+    <div class="lock-row">
+      <button class="btn-3d" id="lockBtn" onclick="lockGuess()">Lock in — $50</button>
+    </div>
+  </div>
+
+  <div class="section-label">Live PnL — if the match ended right now</div>
+  <div class="graph-card" id="graphCard">
+    <div class="graph-head">
+      <span class="label">Projected payout</span>
+      <span class="value pos" id="graphValue">$86.80</span>
+    </div>
+    <svg viewBox="0 0 400 140" id="pnlSvg">
+      <defs>
+        <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6EE896" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#6EE896" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="90" x2="400" y2="90" class="breakeven-line"/>
+      <text x="4" y="86" class="axis-label">stake</text>
+      <path id="pnlArea" class="pnl-area" fill="url(#fillGrad)" d=""/>
+      <path id="pnlLine" class="pnl-line" stroke="#6EE896" d=""/>
+      <line x1="248" y1="10" x2="248" y2="130" class="goal-marker"/>
+      <text x="252" y="20" class="goal-label">62' GOAL — MEX</text>
+      <text x="4" y="135" class="axis-label">KO</text>
+      <text x="380" y="135" class="axis-label">FT</text>
+    </svg>
+  </div>
+
+  <div class="card-row">
+    <div class="pnl-card">
+      <div class="k">Your stake</div>
+      <div class="v">$50.00</div>
+      <div class="sub">Guess 2–1</div>
+    </div>
+    <div class="pnl-card">
+      <div class="k">Live rank</div>
+      <div class="v pos" id="rankValue">1 of 5</div>
+      <div class="sub" id="rankSub">D = 1.25 · below median</div>
+    </div>
+  </div>
+  <span class="status-badge winning" id="statusBadge">● Projected winner — cash out available</span>
+
+  <div class="cta-row">
+    <button class="btn-3d ghost">Hold position</button>
+    <button class="btn-3d" onclick="cashOut()">Cash out — $86.80</button>
+  </div>
+
+  <div class="demo-controls">
+    <span class="tag">Demo controls — not part of the real product surface</span>
+    <button class="demo-btn" onclick="simulateGoal('home')">Simulate MEX goal</button>
+    <button class="demo-btn" onclick="simulateGoal('away')">Simulate USA goal</button>
+    <button class="demo-btn" onclick="advanceClock()">Advance clock +5'</button>
+  </div>
+
+</div>
+
+<script>
+let homeGuess = 2, awayGuess = 1;
+let homeLive = 1, awayLive = 0;
+let minute = 62;
+let locked = false;
+
+function adjust(side, dir){
+  if (locked) return;
+  if (side==='home'){ homeGuess = Math.max(0, Math.min(9, homeGuess+dir)); }
+  else { awayGuess = Math.max(0, Math.min(9, awayGuess+dir)); }
+  rollDigit(side==='home' ? 'homeDigit':'awayDigit', side==='home'?homeGuess:awayGuess);
+}
+function rollDigit(id, val){
+  const el = document.getElementById(id);
+  el.classList.add('rolling');
+  setTimeout(()=>{ el.textContent = val; el.classList.remove('rolling'); }, 160);
+}
+function lockGuess(){
+  locked = true;
+  document.getElementById('lockBtn').textContent = 'Locked in ✓';
+  document.getElementById('lockBtn').style.opacity = '0.7';
+}
+
+// --- distance formula (Market A, same weights as the spec) ---
+const P=4.0, WGD=1.0, WTG=0.5, WCS=0.25, CAPGD=3, CAPTG=4;
+function outcome(gd){ return gd>0?'H':gd<0?'A':'D'; }
+function distanceA(gh,ga,ah,aa){
+  const gdG=gh-ga, gdA=ah-aa, tgG=gh+ga, tgA=ah+aa;
+  const correct = outcome(gdG)===outcome(gdA)?1:0;
+  const dGD=Math.min(Math.abs(gdG-gdA),CAPGD);
+  const dTG=Math.min(Math.abs(tgG-tgA),CAPTG);
+  const cshg=ga===0?1:0, csha=aa===0?1:0, csag=gh===0?1:0, csaa=ah===0?1:0;
+  return (1-correct)*P + WGD*dGD + WTG*dTG + WCS*(Math.abs(cshg-csha)+Math.abs(csag-csaa));
+}
+
+// static reference field (the other 4 stakers), fixed for the demo
+const field = [
+  {name:'C', gh:3, ga:1, stake:40},
+  {name:'B', gh:2, ga:0, stake:30},
+  {name:'D', gh:1, ga:1, stake:20},
+  {name:'E', gh:1, ga:2, stake:60},
+];
+const YOU_STAKE = 50;
+
+let history = []; // {minute, payout}
+
+function computeLiveState(){
+  const all = [
+    {name:'YOU', gh:homeGuess, ga:awayGuess, stake:YOU_STAKE},
+    ...field
+  ].map(t => ({...t, D: distanceA(t.gh, t.ga, homeLive, awayLive)}));
+
+  const sorted = [...all].sort((a,b)=>a.D-b.D);
+  const N = all.length;
+  const k = Math.floor((N+1)/2);
+  const m = sorted[k-1].D;
+  const minD = sorted[0].D;
+  const countAtMin = all.filter(t=>Math.abs(t.D-minD)<1e-9).length;
+  const coalition = countAtMin >= N/2;
+
+  const you = all.find(t=>t.name==='YOU');
+  const isWinner = coalition ? Math.abs(you.D-minD)<1e-9 : you.D < m - 1e-9;
+
+  let payout = 0;
+  if (isWinner){
+    const winners = all.filter(t => coalition ? Math.abs(t.D-minD)<1e-9 : t.D < m - 1e-9);
+    const losers = all.filter(t => !winners.includes(t));
+    winners.forEach(t=>{ t.r = m===0?0:t.D/m; t.a = Math.pow(1/(1+t.r),6); });
+    const losersStake = losers.reduce((s,t)=>s+t.stake,0);
+    const pool = losersStake*0.8;
+    const sumA = winners.reduce((s,t)=>s+t.a,0);
+    const alpha = sumA>0 ? pool/sumA : 0;
+    const yourWinnerObj = winners.find(t=>t.name==='YOU');
+    payout = you.stake + alpha*yourWinnerObj.a;
+  }
+
+  const rank = sorted.findIndex(t=>t.name==='YOU') + 1;
+  return { payout, isWinner, D: you.D, rank, N, median: m };
+}
+
+function render(){
+  const state = computeLiveState();
+  document.getElementById('graphValue').textContent = '$'+state.payout.toFixed(2);
+  document.getElementById('graphValue').className = 'value ' + (state.payout>=YOU_STAKE ? 'pos':'neg');
+  document.getElementById('rankValue').textContent = state.rank+' of '+state.N;
+  document.getElementById('rankValue').className = 'v ' + (state.isWinner?'pos':'neg');
+  document.getElementById('rankSub').textContent = 'D = '+state.D.toFixed(2)+' · '+(state.isWinner?'below median':'above median');
+  const badge = document.getElementById('statusBadge');
+  if (state.isWinner){
+    badge.className='status-badge winning';
+    badge.textContent='● Projected winner — cash out available';
+  } else {
+    badge.className='status-badge losing';
+    badge.textContent='● Projected loser — cash out limits your loss';
+  }
+  document.querySelector('.cta-row .btn-3d:not(.ghost)').textContent = 'Cash out — $'+state.payout.toFixed(2);
+  document.getElementById('liveScoreDisplay').textContent = homeLive+' – '+awayLive;
+  document.getElementById('clockDisplay').textContent = minute+"'";
+
+  history.push({minute, payout: state.payout});
+  drawGraph();
+  return state;
+}
+
+function drawGraph(){
+  const w=400,h=140, top=15, bottom=125;
+  const maxPayout = Math.max(YOU_STAKE*2, ...history.map(h=>h.payout), 10);
+  const minPayout = 0;
+  const xFor = i => (i/(Math.max(history.length-1,1))) * (w-10) + 5;
+  const yFor = v => bottom - ((v-minPayout)/(maxPayout-minPayout)) * (bottom-top);
+
+  let linePts = history.map((h,i)=>`${xFor(i)},${yFor(h.payout)}`).join(' L ');
+  let d = 'M ' + linePts;
+  let areaD = 'M ' + (5) + ',' + bottom + ' L ' + linePts + ' L ' + xFor(history.length-1) + ',' + bottom + ' Z';
+
+  document.getElementById('pnlLine').setAttribute('d', d);
+  document.getElementById('pnlArea').setAttribute('d', areaD);
+
+  const lastState = history[history.length-1];
+  const stroke = lastState.payout >= YOU_STAKE ? '#6EE896' : '#C97361';
+  document.getElementById('pnlLine').setAttribute('stroke', stroke);
+  document.getElementById('fillGrad').innerHTML =
+    `<stop offset="0%" stop-color="${stroke}" stop-opacity="0.45"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>`;
+
+  // breakeven line position
+  document.querySelector('.breakeven-line').setAttribute('y1', yFor(YOU_STAKE));
+  document.querySelector('.breakeven-line').setAttribute('y2', yFor(YOU_STAKE));
+}
+
+function simulateGoal(side){
+  if (side==='home') homeLive++; else awayLive++;
+  minute = Math.min(minute+1, 90);
+  const before = computeLiveState().isWinner;
+  const state = render();
+  const card = document.getElementById('graphCard');
+  card.classList.remove('flash-win','flash-lose');
+  void card.offsetWidth; // restart animation
+  card.classList.add(state.isWinner ? 'flash-win' : 'flash-lose');
+  setTimeout(()=>card.classList.remove('flash-win','flash-lose'), 700);
+}
+function advanceClock(){
+  minute = Math.min(minute+5, 90);
+  render();
+}
+function cashOut(){
+  alert('Cash-out flow — see Tier 1 checkpoint cash-out spec.');
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+/* Player Perps — shared UI styles.
+   Layout: near-black. Actions: gradient green. Minimal, footbally. */
+:root{
+  --bg:#070B09;
+  --panel:#0D1410;
+  --panel-2:#121B15;
+  --line:#1D2B22;
+  --green-bright:#6EE896;   /* chrome/accent only, not data marks */
+  --green:#3E9E64;
+  --green-dark:#1B3A26;
+  --green-deep:#0F2418;
+  --profit:#0FAE8C;         /* validated data-mark green (CVD-safe vs --loss) */
+  --loss:#C97361;
+  --loss-dark:#5A2E24;
+  --text:#EAF2EC;
+  --dim:#7E9186;
+  --dim-2:#4C5A51;
+  --grad-btn:linear-gradient(160deg,#6EE896 0%,#3E9E64 55%,#2C7A4C 100%);
+  --grad-btn-hover:linear-gradient(160deg,#83F0A7 0%,#4BB374 55%,#338A57 100%);
+  --font-display:'Bebas Neue',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--font-body);-webkit-font-smoothing:antialiased;
+}
+a{color:var(--green-bright);text-decoration:none;}
+.container{max-width:1080px;margin:0 auto;padding:0 20px;}
+.mono{font-family:var(--font-mono);}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(7,11,9,0.85);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:22px;letter-spacing:0.06em;color:var(--text);}
+.logo .ball{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0%,#cfe6d6 30%,#3E9E64 100%);box-shadow:0 0 12px rgba(110,232,150,0.35);}
+.nav-links{display:flex;align-items:center;gap:22px;font-size:13.5px;color:var(--dim);}
+.nav-links a{color:var(--dim);transition:color .15s;}
+.nav-links a:hover{color:var(--text);}
+.net-pill{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.06em;
+  color:var(--green-bright);background:var(--green-deep);
+  padding:4px 10px;border-radius:20px;border:1px solid var(--green-dark);text-transform:uppercase;
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-body);font-weight:700;font-size:14px;letter-spacing:0.01em;
+  padding:13px 26px;border-radius:12px;border:none;cursor:pointer;
+  background:var(--grad-btn);color:#04140A;
+  box-shadow:0 5px 0 var(--green-dark),0 8px 24px rgba(62,158,100,0.25);
+  transition:transform .08s ease,box-shadow .08s ease,background .15s;
+  -webkit-tap-highlight-color:transparent;text-decoration:none;
+}
+.btn:hover{background:var(--grad-btn-hover);}
+.btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--green-dark);}
+.btn.ghost{
+  background:var(--panel-2);color:var(--text);
+  box-shadow:0 5px 0 var(--line);border:1px solid var(--line);
+}
+.btn.ghost:active{box-shadow:0 0 0 var(--line);}
+.btn.sm{padding:9px 16px;font-size:13px;border-radius:10px;box-shadow:0 4px 0 var(--green-dark);}
+.btn.sm:active{transform:translateY(4px);box-shadow:0 0 0 var(--green-dark);}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* ---------- image placeholders (swap src later, keep sizes) ---------- */
+.ph{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:
+    radial-gradient(ellipse at 50% 120%,rgba(62,158,100,0.18),transparent 60%),
+    repeating-linear-gradient(90deg,var(--panel) 0 60px,var(--panel-2) 60px 120px); /* pitch stripes */
+  border:1px dashed var(--green-dark);border-radius:16px;overflow:hidden;color:var(--dim-2);
+}
+.ph::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 55%,rgba(7,11,9,0.75) 100%);
+}
+.ph .ph-icon{font-size:34px;filter:grayscale(0.2);opacity:0.85;z-index:1;}
+.ph .ph-cap{font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;z-index:1;}
+.ph.hero-img{width:100%;aspect-ratio:16/9;max-height:420px;}      /* 1600x900 */
+.ph.banner{width:100%;aspect-ratio:3/1;}                          /* 1200x400 */
+.ph.thumb{width:100%;aspect-ratio:16/9;border-radius:12px;}       /* 400x225 */
+.ph.crest{width:56px;height:56px;border-radius:50%;border-style:solid;flex-shrink:0;} /* 64x64 */
+.ph.crest .ph-icon{font-size:22px;}
+.ph.crest .ph-cap{display:none;}
+.ph.player{width:100%;aspect-ratio:3/4;border-radius:14px;}       /* 300x400 */
+
+/* ---------- cards & sections ---------- */
+.section-label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--dim);margin:26px 0 12px;
+}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+@media(max-width:760px){.grid-3,.grid-2{grid-template-columns:1fr;}}
+
+.live-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em;
+  color:var(--green-bright);background:var(--green-deep);
+  padding:5px 10px;border-radius:20px;border:1px solid var(--green-dark);
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green-bright);animation:pulse-dot 1.6s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(110,232,150,0.5);}50%{opacity:0.6;box-shadow:0 0 0 4px rgba(110,232,150,0);}}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:20px;}
+.badge.win{background:var(--green-deep);color:var(--green-bright);border:1px solid var(--green-dark);}
+.badge.lose{background:rgba(90,46,36,0.35);color:var(--loss);border:1px solid var(--loss-dark);}
+.badge.neutral{background:var(--panel-2);color:var(--dim);border:1px solid var(--line);}
+
+.footer{border-top:1px solid var(--line);margin-top:70px;padding:26px 0 40px;color:var(--dim-2);font-size:12.5px;}
+.footer .mono{font-size:11px;}
+
+@media(max-width:640px){
+  .nav-links a:not(.btn){display:none;}   /* keep logo + net pill + CTA only */
+  .nav-links{gap:10px;}
+  .logo{font-size:19px;}
+}

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Perps — Match View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .app-grid{display:grid;grid-template-columns:440px 1fr;gap:20px;padding:22px 0 90px;align-items:start;}
+  @media(max-width:920px){.app-grid{grid-template-columns:1fr;}}
+
+  /* ---- fixture strip ---- */
+  .fixture-strip{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+  }
+  .team-mini{display:flex;flex-direction:column;align-items:center;gap:6px;width:88px;}
+  .team-mini .tname{font-size:11px;color:var(--dim);font-family:var(--font-mono);}
+  .live-score{font-family:var(--font-display);font-size:40px;letter-spacing:0.02em;}
+  .clock{font-family:var(--font-mono);font-size:11px;color:var(--green-bright);display:block;text-align:center;margin-top:2px;letter-spacing:0.05em;}
+  .comp{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;}
+
+  /* ---- picker ---- */
+  .picker-row{display:flex;align-items:center;justify-content:center;gap:26px;}
+  .picker-col{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .picker-team{font-family:var(--font-mono);font-size:12px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;}
+  .glide-btn{
+    width:44px;height:44px;border-radius:12px;border:none;cursor:pointer;
+    background:var(--grad-btn);color:#04140A;
+    font-family:var(--font-display);font-size:22px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 0 var(--green-dark);
+    transition:transform .07s ease,box-shadow .07s ease;-webkit-tap-highlight-color:transparent;
+  }
+  .glide-btn:active{transform:translateY(5px);box-shadow:0 0 0 var(--green-dark);}
+  .glide-btn.minus{background:var(--panel-2);color:var(--text);box-shadow:0 5px 0 var(--line);}
+  .glide-btn.minus:active{box-shadow:0 0 0 var(--line);}
+  .digit-shell{
+    width:64px;height:78px;border-radius:14px;background:var(--panel-2);
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .digit{font-family:var(--font-display);font-size:52px;transition:transform .18s cubic-bezier(.2,.9,.3,1),opacity .18s;}
+  .digit.rolling{transform:translateY(-14px);opacity:0;}
+  .dash-sep{font-family:var(--font-display);font-size:40px;color:var(--dim-2);padding-bottom:6px;}
+
+  .stake-row{display:flex;gap:10px;margin-top:18px;align-items:stretch;}
+  .stake-input{
+    flex:1;display:flex;align-items:center;gap:8px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:12px;padding:0 14px;
+  }
+  .stake-input span{font-family:var(--font-mono);font-size:12px;color:var(--dim);}
+  .stake-input input{
+    width:100%;background:none;border:none;outline:none;color:var(--text);
+    font-family:var(--font-mono);font-size:18px;font-weight:600;padding:12px 0;
+  }
+  .usdc-tag{font-family:var(--font-mono);font-size:10.5px;color:var(--green-bright);background:var(--green-deep);border:1px solid var(--green-dark);border-radius:6px;padding:2px 7px;}
+
+  /* ---- chart card ---- */
+  .graph-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 16px 10px;position:relative;overflow:hidden;}
+  .graph-card.flash-win::before,.graph-card.flash-lose::before{content:'';position:absolute;inset:0;pointer-events:none;animation:flash-fade .7s ease-out;}
+  .graph-card.flash-win::before{background:radial-gradient(circle at 50% 30%,rgba(15,174,140,0.30),transparent 70%);}
+  .graph-card.flash-lose::before{background:radial-gradient(circle at 50% 30%,rgba(201,115,97,0.28),transparent 70%);}
+  @keyframes flash-fade{from{opacity:1;}to{opacity:0;}}
+  .graph-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+  .graph-head .label{font-family:var(--font-mono);font-size:11px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;}
+  .graph-head .value{font-family:var(--font-mono);font-size:22px;font-weight:600;}
+  .value.pos{color:var(--profit);}
+  .value.neg{color:var(--loss);}
+  svg{display:block;width:100%;height:auto;}
+  .breakeven-line{stroke:var(--dim-2);stroke-width:1;stroke-dasharray:3 4;}
+  .pnl-area{opacity:0.5;}
+  .pnl-line{fill:none;stroke-width:2.5;}
+  .goal-marker{stroke:var(--text);stroke-width:1;stroke-dasharray:2 3;opacity:0.45;}
+  .goal-label{font-family:var(--font-mono);font-size:9px;fill:var(--dim);}
+  .axis-label{font-family:var(--font-mono);font-size:9px;fill:var(--dim-2);}
+  .crosshair{stroke:var(--dim);stroke-width:1;stroke-dasharray:2 2;opacity:0;}
+  .hover-dot{fill:var(--text);stroke:var(--bg);stroke-width:2;r:4;opacity:0;}
+  .chart-tip{
+    position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:6px 10px;font-family:var(--font-mono);font-size:11px;color:var(--text);
+    white-space:nowrap;z-index:5;
+  }
+  .chart-tip .t-min{color:var(--dim);}
+  .chart-actions{display:flex;justify-content:flex-end;margin-top:2px;}
+  .link-btn{background:none;border:none;color:var(--dim-2);font-family:var(--font-mono);font-size:10.5px;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;}
+  .link-btn:hover{color:var(--dim);}
+  .pnl-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px;margin-top:6px;display:none;}
+  .pnl-table th,.pnl-table td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--line);color:var(--dim);}
+  .pnl-table th{color:var(--dim-2);text-transform:uppercase;font-size:10px;letter-spacing:0.06em;}
+  .pnl-table td:first-child,.pnl-table th:first-child{text-align:left;}
+
+  /* ---- stats + leaderboard ---- */
+  .card-row{display:flex;gap:10px;margin-top:14px;}
+  .pnl-card{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;}
+  .pnl-card .k{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+  .pnl-card .v{font-family:var(--font-mono);font-size:19px;font-weight:600;}
+  .pnl-card .v.pos{color:var(--profit);}
+  .pnl-card .v.neg{color:var(--loss);}
+  .pnl-card .sub{font-size:11px;color:var(--dim-2);margin-top:4px;font-family:var(--font-mono);}
+
+  .lb{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;}
+  .lb th{font-size:10px;color:var(--dim-2);text-transform:uppercase;letter-spacing:0.07em;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);}
+  .lb td{padding:8px;border-bottom:1px solid var(--line);color:var(--dim);}
+  .lb tr.you td{color:var(--text);background:rgba(15,174,140,0.06);}
+  .lb .pos-ind{color:var(--profit);} .lb .neg-ind{color:var(--loss);}
+
+  .demo-controls{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);display:flex;gap:8px;flex-wrap:wrap;}
+  .demo-controls .tag{font-family:var(--font-mono);font-size:10px;color:var(--dim-2);width:100%;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.08em;}
+  .demo-btn{font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:8px;background:var(--panel-2);color:var(--dim);border:1px solid var(--line);cursor:pointer;}
+  .demo-btn:hover{color:var(--text);border-color:var(--dim-2);}
+
+  .wallet-chip{display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-family:var(--font-mono);font-size:12px;color:var(--text);}
+  .wallet-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--profit);}
+  .wallet-chip button{background:none;border:none;color:var(--dim-2);cursor:pointer;font-size:14px;padding:0 0 0 4px;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);
+    background:var(--panel-2);border:1px solid var(--line);border-radius:12px;
+    padding:12px 18px;font-family:var(--font-mono);font-size:12px;color:var(--text);
+    opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:100;max-width:90vw;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo" style="text-decoration:none;"><span class="ball"></span>PLAYER&nbsp;PERPS</a>
+    <div class="nav-links">
+      <span class="net-pill">Solana · Devnet</span>
+      <span id="walletArea">
+        <button class="btn sm" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+      </span>
+    </div>
+  </div>
+</nav>
+
+<div class="container app-grid">
+
+  <!-- ============ LEFT: match + your position ============ -->
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span class="comp" id="compLabel">World Cup 2026</span>
+      <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+    </div>
+
+    <!-- markets listed by the agent (fixtures.json) -->
+    <div id="marketPicker" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+
+    <!-- on-chain market state (filled by loadFixtureState) -->
+    <div class="card" id="marketStrip" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;margin-bottom:12px;font-family:var(--font-mono);font-size:11.5px;color:var(--dim);">
+      <span id="marketStatus" class="badge neutral">● reading chain…</span>
+      <span id="marketLock">lock: —</span>
+      <span id="marketEscrow">escrow: —</span>
+    </div>
+
+    <!-- settlement proof (fills in once the market is validated/settled on-chain) -->
+    <div class="card" id="proofPanel" style="display:none;padding:12px 14px;margin-bottom:12px;font-family:var(--font-mono);font-size:11.5px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="color:var(--text);font-weight:600;">⛓ Settlement proof</span>
+        <span class="badge win">● Merkle-verified on-chain</span>
+      </div>
+      <div id="proofRows" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;color:var(--dim);word-break:break-all;"></div>
+    </div>
+
+    <div class="fixture-strip">
+      <div class="team-mini">
+        <!-- IMAGE PLACEHOLDER: team crest 64x64 -->
+        <div class="ph crest"><span class="ph-icon">⚽</span></div>
+        <span class="tname">MEX</span>
+      </div>
+      <div style="text-align:center;">
+        <div class="live-score" id="liveScoreDisplay">1 – 0</div>
+        <span class="clock" id="clockDisplay">62'</span>
+      </div>
+      <div class="team-mini">
+        <div class="ph crest"><span class="ph-icon">⚽</span></div>
+        <span class="tname">USA</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:18px;">Your guess — full-time score</div>
+    <div class="card">
+      <div class="picker-row">
+        <div class="picker-col">
+          <span class="picker-team">MEX</span>
+          <button class="glide-btn" onclick="adjust('home',1)">▲</button>
+          <div class="digit-shell"><span class="digit" id="homeDigit">2</span></div>
+          <button class="glide-btn minus" onclick="adjust('home',-1)">▼</button>
+        </div>
+        <div class="dash-sep">–</div>
+        <div class="picker-col">
+          <span class="picker-team">USA</span>
+          <button class="glide-btn" onclick="adjust('away',1)">▲</button>
+          <div class="digit-shell"><span class="digit" id="awayDigit">1</span></div>
+          <button class="glide-btn minus" onclick="adjust('away',-1)">▼</button>
+        </div>
+      </div>
+      <div class="stake-row">
+        <div class="stake-input">
+          <span>STAKE</span>
+          <input type="number" id="stakeInput" value="50" min="1" max="10000" step="1" onchange="onStakeChange()">
+          <span class="usdc-tag">USDC</span>
+        </div>
+        <button class="btn" id="lockBtn" onclick="lockGuess()">Lock in</button>
+      </div>
+      <div style="margin-top:10px;font-family:var(--font-mono);font-size:10.5px;color:var(--dim-2);">
+        Escrow: USDC (SPL) · funds held by the fixture PDA until proven settlement.
+      </div>
+    </div>
+
+    <div class="section-label" id="poolLabel">Pool — 5 positions</div>
+    <div class="card" style="padding:8px 6px;">
+      <table class="lb" id="lbTable">
+        <thead><tr><th>Staker</th><th>Guess</th><th>Stake</th><th>D</th><th>Now pays</th></tr></thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </div>
+
+    <div class="demo-controls">
+      <span class="tag">Devnet demo — drives the live feed until the SSE stream is wired</span>
+      <button class="demo-btn" id="demoHomeBtn" onclick="simulateGoal('home')">⚽ Home goal</button>
+      <button class="demo-btn" id="demoAwayBtn" onclick="simulateGoal('away')">⚽ Away goal</button>
+      <button class="demo-btn" onclick="advanceClock()">⏱ +5'</button>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT: live PnL ============ -->
+  <div>
+    <div class="section-label" style="margin-top:0;">Live PnL — if the match ended right now</div>
+    <div class="graph-card" id="graphCard">
+      <div class="graph-head">
+        <span class="label">Projected payout</span>
+        <span class="value pos" id="graphValue">+$0.00</span>
+      </div>
+      <div style="position:relative;">
+        <svg viewBox="0 0 560 190" id="pnlSvg">
+          <defs>
+            <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0FAE8C" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#0FAE8C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line class="breakeven-line" x1="0" y1="120" x2="560" y2="120"/>
+          <text x="4" y="116" class="axis-label">stake (breakeven)</text>
+          <g id="goalMarks"></g>
+          <path id="pnlArea" class="pnl-area" fill="url(#fillGrad)" d=""/>
+          <path id="pnlLine" class="pnl-line" stroke="#0FAE8C" d=""/>
+          <line id="crossV" class="crosshair" x1="0" y1="12" x2="0" y2="172"/>
+          <circle id="hoverDot" class="hover-dot" cx="0" cy="0"/>
+          <text x="4" y="186" class="axis-label">KO</text>
+          <text x="536" y="186" class="axis-label">FT</text>
+          <rect id="hitLayer" x="0" y="0" width="560" height="190" fill="transparent"/>
+        </svg>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+      <div class="chart-actions">
+        <button class="link-btn" onclick="toggleTable()" id="tableToggle">View as table</button>
+      </div>
+      <table class="pnl-table" id="pnlTable">
+        <thead><tr><th>Minute</th><th>Score</th><th>Payout</th><th>PnL</th></tr></thead>
+        <tbody id="pnlTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card-row">
+      <div class="pnl-card">
+        <div class="k">Your stake</div>
+        <div class="v" id="stakeCard">$50.00</div>
+        <div class="sub" id="guessCard">Guess 2–1</div>
+      </div>
+      <div class="pnl-card">
+        <div class="k">Live rank</div>
+        <div class="v pos" id="rankValue">—</div>
+        <div class="sub" id="rankSub">—</div>
+      </div>
+      <div class="pnl-card">
+        <div class="k">Unrealised PnL</div>
+        <div class="v" id="pnlCard">—</div>
+        <div class="sub">vs stake if FT now</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;"><span class="badge neutral" id="statusBadge">● waiting for first render</span></div>
+
+    <div class="section-label">How settlement is proven</div>
+    <div class="card" style="font-size:13px;color:var(--dim);line-height:1.65;">
+      At <b style="color:var(--text)">game finalised</b>, the keeper fetches a Merkle proof of the
+      final score from TxLine and submits it to the program. The program CPIs into the
+      <span class="mono" style="font-size:11.5px;">txoracle</span> to verify it against the
+      on-chain daily root — <b style="color:var(--text)">a wrong score is rejected by math</b>,
+      then payouts follow the Trepa median-gate engine you see ticking above.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="web3.iife.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ================= wallet (connect wallet — no email/Google) ================= */
+let walletPubkey = null;
+const C = window.PP_CONFIG || {};
+const W3 = window.solanaWeb3;
+const DEVNET_RPC = C.RPC || "https://api.devnet.solana.com";
+const conn = W3 ? new W3.Connection(DEVNET_RPC, "confirmed") : null;
+
+const TOKEN_PROGRAM = W3 && new W3.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const ATA_PROGRAM   = W3 && new W3.PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+
+function u64le(n){ const b=new Uint8Array(8); new DataView(b.buffer).setBigUint64(0,BigInt(n),true); return b; }
+function ataFor(owner,mint){
+  return W3.PublicKey.findProgramAddressSync(
+    [owner.toBytes(),TOKEN_PROGRAM.toBytes(),mint.toBytes()],ATA_PROGRAM)[0];
+}
+function ixCreateAtaIdempotent(payer,ata,owner,mint){
+  return new W3.TransactionInstruction({programId:ATA_PROGRAM,keys:[
+    {pubkey:payer,isSigner:true,isWritable:true},{pubkey:ata,isSigner:false,isWritable:true},
+    {pubkey:owner,isSigner:false,isWritable:false},{pubkey:mint,isSigner:false,isWritable:false},
+    {pubkey:W3.SystemProgram.programId,isSigner:false,isWritable:false},
+    {pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false}],data:new Uint8Array([1])});
+}
+function ixMintTo(mint,dest,authority,amount){
+  const data=new Uint8Array(9); data[0]=7; data.set(u64le(amount),1);
+  return new W3.TransactionInstruction({programId:TOKEN_PROGRAM,keys:[
+    {pubkey:mint,isSigner:false,isWritable:true},{pubkey:dest,isSigner:false,isWritable:true},
+    {pubkey:authority,isSigner:true,isWritable:false}],data});
+}
+function ixStake(staker,fixture,position,stakerUsdc,escrow,gh,ga,amount){
+  const data=new Uint8Array(18);
+  data.set([206,176,202,18,200,209,179,108],0); // anchor disc: global:stake
+  data[8]=gh; data[9]=ga; data.set(u64le(amount),10);
+  return new W3.TransactionInstruction({programId:new W3.PublicKey(C.PROGRAM_ID),keys:[
+    {pubkey:staker,isSigner:true,isWritable:true},{pubkey:fixture,isSigner:false,isWritable:true},
+    {pubkey:position,isSigner:false,isWritable:true},{pubkey:stakerUsdc,isSigner:false,isWritable:true},
+    {pubkey:escrow,isSigner:false,isWritable:true},{pubkey:TOKEN_PROGRAM,isSigner:false,isWritable:false},
+    {pubkey:W3.SystemProgram.programId,isSigner:false,isWritable:false}],data});
+}
+
+function getProvider(){
+  if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+  if (window.solana?.isPhantom) return window.solana;
+  if (window.solflare?.isSolflare) return window.solflare;
+  return null;
+}
+async function connectWallet(){
+  const provider = getProvider();
+  if (!provider){
+    toast("No Solana wallet found — install Phantom or Solflare, then reload.");
+    window.open("https://phantom.app/", "_blank");
+    return;
+  }
+  try{
+    const resp = await provider.connect();
+    walletPubkey = (resp.publicKey ?? provider.publicKey).toString();
+    renderWallet();
+    toast("Wallet connected — devnet");
+    fetchSolBalance();
+    checkExistingPosition();
+  }catch(e){ toast("Connection cancelled."); }
+}
+/* If this wallet already staked on the fixture, reflect it instead of offering a re-stake. */
+async function checkExistingPosition(){
+  if(!W3 || !C.PROGRAM_ID || !walletPubkey || !MARKET) return;
+  try{
+    const user=new W3.PublicKey(walletPubkey);
+    const [position]=W3.PublicKey.findProgramAddressSync(
+      [new TextEncoder().encode("stake"),u64le(MARKET.fixtureId),user.toBytes()],
+      new W3.PublicKey(C.PROGRAM_ID));
+    const acc=await conn.getAccountInfo(position);
+    if(!acc) return;
+    // StakePosition layout: disc(8) fixture(32) staker(32) gh(1) ga(1) stake u64(8)…
+    const d=acc.data;
+    homeGuess=d[72]; awayGuess=d[73];
+    yourStake=Number(new DataView(d.buffer,d.byteOffset+74,8).getBigUint64(0,true))/1e6;
+    locked=true;
+    document.getElementById('homeDigit').textContent=homeGuess;
+    document.getElementById('awayDigit').textContent=awayGuess;
+    document.getElementById('stakeInput').value=yourStake;
+    document.getElementById('stakeInput').disabled=true;
+    const btn=document.getElementById('lockBtn');
+    btn.disabled=true; btn.textContent='Locked ✓';
+    toast(`Position found on-chain: ${homeGuess}–${awayGuess} for $${yourStake}`);
+    render(false);
+  }catch(_){}
+}
+function disconnectWallet(){
+  const provider = getProvider();
+  provider?.disconnect?.();
+  walletPubkey = null;
+  document.getElementById('walletArea').innerHTML =
+    '<button class="btn sm" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>';
+}
+function renderWallet(){
+  const short = walletPubkey.slice(0,4) + "…" + walletPubkey.slice(-4);
+  document.getElementById('walletArea').innerHTML =
+    `<span class="wallet-chip"><span class="dot"></span>${short}<span id="solBal" style="color:var(--dim);"></span>
+     <button title="Disconnect" onclick="disconnectWallet()">✕</button></span>`;
+}
+async function fetchSolBalance(){
+  try{
+    const r = await fetch(DEVNET_RPC, {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({jsonrpc:"2.0",id:1,method:"getBalance",params:[walletPubkey]})});
+    const j = await r.json();
+    const sol = (j.result?.value ?? 0)/1e9;
+    const el = document.getElementById('solBal');
+    if (el) el.textContent = " · " + sol.toFixed(2) + " SOL";
+  }catch(_){}
+}
+
+/* ================= engine (faithful float port of engine.ts) ================= */
+const P=4.0, WGD=1.0, WTG=0.5, WCS=0.25, CAPGD=3, CAPTG=4;   // DistParams
+const GAMMA=6, TAKE_BPS=2000, CAP_MULTIPLE=5;                 // PayoutParams
+const sign = gd => gd>0?1:gd<0?-1:0;
+
+function distanceA(gh,ga,ah,aa){
+  const gdG=gh-ga, gdA=ah-aa, tgG=gh+ga, tgA=ah+aa;
+  const correct = sign(gdG)===sign(gdA)?1:0;
+  const dGD=Math.min(Math.abs(gdG-gdA),CAPGD);
+  const dTG=Math.min(Math.abs(tgG-tgA),CAPTG);
+  const cs=(Math.abs((ga===0)-(aa===0))+Math.abs((gh===0)-(ah===0)));
+  return (1-correct)*P + WGD*dGD + WTG*dTG + WCS*cs;
+}
+/* Trepa settle: median gate, coalition mode, accuracy weights, cap water-fill. */
+function settle(pos){
+  const n=pos.length, total=pos.reduce((s,p)=>s+p.stake,0);
+  const out=pos.map(p=>({isWinner:false,a:0,gain:0,payout:p.stake}));
+  if (n<=1) return {void:'FewerThanTwo',outcomes:out,medianD:0};
+  const ds=[...pos.map(p=>p.d)].sort((a,b)=>a-b);
+  if (Math.abs(ds[0]-ds[n-1])<1e-9) return {void:'AllEqualD',outcomes:out,medianD:0};
+  const minD=ds[0], countAtMin=pos.filter(p=>Math.abs(p.d-minD)<1e-9).length;
+  const coalition=countAtMin*2>=n;
+  const medianD=ds[Math.floor((n+1)/2)-1];
+  pos.forEach((p,i)=>{ out[i].isWinner = coalition ? Math.abs(p.d-minD)<1e-9 : p.d<medianD-1e-9; });
+  pos.forEach((p,i)=>{ if(out[i].isWinner){ const r=medianD===0?0:p.d/medianD; out[i].a=Math.pow(1/(1+r),GAMMA);} });
+  const losers=pos.reduce((s,p,i)=>s+(out[i].isWinner?0:p.stake),0);
+  let remaining=losers*(10000-TAKE_BPS)/10000;
+  const winners=out.map((o,i)=>o.isWinner?i:-1).filter(i=>i>=0);
+  const capped=new Array(n).fill(false);
+  for(let round=0;round<10;round++){
+    const un=winners.filter(i=>!capped[i]);
+    const sumA=un.reduce((s,i)=>s+out[i].a,0);
+    if(!un.length||sumA===0){break;}
+    const alpha=remaining/sumA; let any=false;
+    for(const i of un){ const naive=alpha*out[i].a, cap=pos[i].stake*CAP_MULTIPLE;
+      if(naive>cap){ out[i].gain=cap; capped[i]=true; remaining-=cap; any=true; } }
+    if(!any){ for(const i of un) out[i].gain=alpha*out[i].a; remaining=0; break; }
+  }
+  pos.forEach((p,i)=>{ out[i].payout = out[i].isWinner ? p.stake+out[i].gain : 0; });
+  return {void:null,outcomes:out,medianD};
+}
+
+/* ================= match state ================= */
+let homeGuess=2, awayGuess=1, yourStake=50, locked=false;
+let homeLive=1, awayLive=0, minute=62;
+const field=[ // the §7 reference pool (matches the proven on-chain e2e)
+  {name:'C',gh:3,ga:1,stake:40},
+  {name:'B',gh:2,ga:0,stake:30},
+  {name:'D',gh:1,ga:1,stake:20},
+  {name:'E',gh:1,ga:2,stake:60},
+];
+let history=[], goals=[];
+
+function adjust(side,dir){
+  if(locked) return;
+  if(side==='home') homeGuess=Math.max(0,Math.min(9,homeGuess+dir));
+  else awayGuess=Math.max(0,Math.min(9,awayGuess+dir));
+  rollDigit(side==='home'?'homeDigit':'awayDigit', side==='home'?homeGuess:awayGuess);
+  render(false);
+}
+function rollDigit(id,val){
+  const el=document.getElementById(id);
+  el.classList.add('rolling');
+  setTimeout(()=>{el.textContent=val;el.classList.remove('rolling');},160);
+}
+function onStakeChange(){
+  if(locked) return;
+  yourStake=Math.max(1,Math.min(10000,Number(document.getElementById('stakeInput').value)||50));
+  document.getElementById('stakeInput').value=yourStake;
+  render(false);
+}
+/* ---- markets from the listing agent (fixtures.json), fallback = config.js demo fixture ---- */
+let MARKET = C.FIXTURE_PDA ? { fixtureId:C.FIXTURE_ID, pda:C.FIXTURE_PDA, escrow:C.ESCROW,
+  home:"MEX", away:"USA", competition:"Devnet demo market", lockTime:C.LOCK_TIME } : null;
+
+async function loadMarkets(){
+  let markets=[];
+  try{ const r=await fetch("fixtures.json",{cache:"no-store"}); if(r.ok) markets=(await r.json()).markets??[]; }catch(_){}
+  const pick=document.getElementById('marketPicker');
+  const chips=[...markets, ...(C.FIXTURE_PDA?[{fixtureId:C.FIXTURE_ID,pda:C.FIXTURE_PDA,escrow:C.ESCROW,home:"MEX",away:"USA",competition:"Devnet demo market",lockTime:C.LOCK_TIME,state:"Open"}]:[])];
+  if(!chips.length){ pick.innerHTML='<span class="badge lose">● no markets listed — run listing-agent.ts</span>'; return; }
+  pick.innerHTML=chips.map((m,i)=>
+    `<button class="demo-btn" data-i="${i}" style="border-radius:20px;">${m.home} v ${m.away}${m.state&&m.state!=='Open'?' · '+m.state:''}</button>`).join('');
+  pick.querySelectorAll('button').forEach(b=>b.onclick=()=>selectMarket(chips[Number(b.dataset.i)],b));
+  selectMarket(chips[0],pick.querySelector('button'));
+}
+function selectMarket(m,btn){
+  MARKET={...m};
+  document.querySelectorAll('#marketPicker button').forEach(b=>{b.style.borderColor='var(--line)';b.style.color='var(--dim)';});
+  if(btn){btn.style.borderColor='var(--green)';btn.style.color='var(--text)';}
+  document.getElementById('compLabel').textContent=(m.competition??'')+(m.kickoff?' · KO '+new Date(m.kickoff).toUTCString().slice(0,22):'');
+  document.querySelectorAll('.team-mini .tname')[0].textContent=m.home.slice(0,12);
+  document.querySelectorAll('.team-mini .tname')[1].textContent=m.away.slice(0,12);
+  document.querySelectorAll('.picker-team')[0].textContent=m.home.slice(0,10);
+  document.querySelectorAll('.picker-team')[1].textContent=m.away.slice(0,10);
+  // reset per-market UI state
+  locked=false; history=[]; goals=[]; homeLive=0; awayLive=0; minute=0;
+  const btn2=document.getElementById('lockBtn'); btn2.disabled=false; btn2.textContent='Lock in';
+  document.getElementById('stakeInput').disabled=false;
+  fixtureState=null; loadFixtureState();
+  renderProofPanel(m);
+  if(walletPubkey) checkExistingPosition();
+  render(true);
+}
+loadMarkets();
+
+/* ---- settlement-proof panel: the trustless chain of custody for the score ----
+   Every link is independently checkable: the validate tx's inner CPI into the
+   txoracle program returns 1 only when the score Merkle-proves against the
+   daily root PDA that TxLine publishes on-chain. */
+const EXPLORER=(sig)=>`https://explorer.solana.com/tx/${sig}?cluster=devnet`;
+const EXPLORER_ACC=(a)=>`https://explorer.solana.com/address/${a}?cluster=devnet`;
+function renderProofPanel(m){
+  const panel=document.getElementById('proofPanel'), rows=document.getElementById('proofRows');
+  if(!m.validateSig){ panel.style.display='none'; return; }
+  const link=(href,txt)=>`<a href="${href}" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;">${txt}</a>`;
+  const r=[];
+  if(m.actualHome!==undefined) r.push(['final score', `${m.home} ${m.actualHome} – ${m.actualAway} ${m.away}`]);
+  if(m.proofSeq) r.push(['feed record', `game_finalised · seq ${m.proofSeq} · statKeys 1,2 (total goals, period 100)`]);
+  r.push(['score proof tx', link(EXPLORER(m.validateSig), m.validateSig.slice(0,20)+'… ↗')+' <span style="color:var(--dim);">validate_score → CPI validate_stat_v3 → returns 1</span>']);
+  if(m.settleSig) r.push([m.state==='Void'?'void tx':'settlement tx', link(EXPLORER(m.settleSig), m.settleSig.slice(0,20)+'… ↗')+' <span style="color:var(--dim);">'+(m.state==='Void'?'0/1 stakers → refunds':'median-gate + conservation re-checked on-chain')+'</span>']);
+  r.push(['market account', link(EXPLORER_ACC(m.pda), m.pda.slice(0,20)+'… ↗')]);
+  rows.innerHTML=r.map(([k,v])=>`<span style="color:var(--dim);white-space:nowrap;">${k}</span><span style="color:var(--text);">${v}</span>`).join('');
+  panel.style.display='block';
+}
+
+const FIXTURE_STATUS = ['Open','Locked','ScoreValidated','DistancesComputed','MedianVerified','Settled','Void'];
+let fixtureState = null; // {status, lockTime, totalPool, stakerCount}
+let marketOpen = false;
+
+async function loadFixtureState(){
+  const ms=document.getElementById('marketStatus');
+  if(!W3 || !MARKET){
+    ms.className='badge lose'; ms.textContent='● config.js missing — run setup-ui-fixture.ts';
+    document.getElementById('lockBtn').disabled=true;
+    return;
+  }
+  try{
+    const acc=await conn.getAccountInfo(new W3.PublicKey(MARKET.pda));
+    if(!acc){ ms.className='badge lose'; ms.textContent='● fixture not found on-chain'; document.getElementById('lockBtn').disabled=true; return; }
+    // Fixture layout (verified vs live account): disc(8) id u64 lock_time i64 status u8
+    // dist(34) payout(14) home u8@73 away u8@74 pool u64@75 stakers u16@83
+    const d=acc.data, dv=new DataView(d.buffer,d.byteOffset);
+    fixtureState={
+      lockTime:Number(dv.getBigInt64(16,true)),
+      status:FIXTURE_STATUS[d[24]]??('?'+d[24]),
+      totalPool:Number(dv.getBigUint64(75,true))/1e6,
+      stakerCount:dv.getUint16(83,true),
+    };
+    const now=Math.floor(Date.now()/1000);
+    marketOpen = fixtureState.status==='Open' && now<fixtureState.lockTime;
+    ms.className='badge '+(marketOpen?'win':'neutral');
+    ms.textContent='● '+(marketOpen?'OPEN for staking':fixtureState.status.toUpperCase());
+    updateLockCountdown();
+    document.getElementById('marketEscrow').textContent='escrow: $'+fixtureState.totalPool.toFixed(2)+' · '+fixtureState.stakerCount+' staked';
+    document.getElementById('poolLabel').textContent=`Pool — live demo of ${field.length+1} positions · on-chain: ${fixtureState.stakerCount} / $${fixtureState.totalPool.toFixed(0)}`;
+    if(!marketOpen && !locked){
+      document.getElementById('lockBtn').disabled=true;
+      document.getElementById('lockBtn').textContent='Market '+fixtureState.status;
+    }
+  }catch(e){
+    ms.className='badge lose'; ms.textContent='● RPC unreachable — retrying';
+    setTimeout(loadFixtureState,8000);
+  }
+}
+function updateLockCountdown(){
+  if(!fixtureState) return;
+  const s=fixtureState.lockTime-Math.floor(Date.now()/1000);
+  const el=document.getElementById('marketLock');
+  if(s<=0){ el.textContent='lock: passed';
+    if(marketOpen){ marketOpen=false; if(!locked){ document.getElementById('lockBtn').disabled=true; document.getElementById('lockBtn').textContent='Market locked'; } }
+    return; }
+  const dd=Math.floor(s/86400), hh=Math.floor(s%86400/3600), mm=Math.floor(s%3600/60);
+  el.textContent='locks in '+(dd?dd+'d ':'')+hh+'h '+mm+'m';
+}
+setInterval(updateLockCountdown,30_000);
+setInterval(loadFixtureState,120_000); // refresh pool/escrow from chain
+loadFixtureState();
+
+async function lockGuess(){
+  if(!walletPubkey){ toast("Connect a wallet first — the stake is a signed USDC transfer."); return; }
+  if(!W3 || !C.PROGRAM_ID){ toast("web3/config not loaded — serve over http and keep config.js next to this page."); return; }
+  if(!marketOpen){ toast("Market is not open for staking ("+(fixtureState?.status??'unknown')+")."); return; }
+  const btn=document.getElementById('lockBtn');
+  btn.disabled=true; btn.textContent='Signing…';
+  try{
+    const provider=getProvider();
+    const user=new W3.PublicKey(walletPubkey);
+    const mint=new W3.PublicKey(C.USDC_MINT);
+    const fixture=new W3.PublicKey(MARKET.pda);
+    const escrow=new W3.PublicKey(MARKET.escrow);
+    // Faucet co-signer mints the demo USDC being staked. DEVNET ONLY — see config.js.
+    const faucet=W3.Keypair.fromSecretKey(new Uint8Array(C.FAUCET_SECRET));
+    const amount=BigInt(yourStake)*1000000n;
+    const [position]=W3.PublicKey.findProgramAddressSync(
+      [new TextEncoder().encode("stake"),u64le(MARKET.fixtureId),user.toBytes()],
+      new W3.PublicKey(C.PROGRAM_ID));
+
+    // guard: one position per wallet per fixture
+    if(await conn.getAccountInfo(position)){
+      toast("This wallet already has a locked position on this fixture.");
+      btn.textContent='Already locked'; return;
+    }
+
+    const userAta=ataFor(user,mint);
+    const tx=new W3.Transaction().add(
+      ixCreateAtaIdempotent(user,userAta,user,mint),
+      ixMintTo(mint,userAta,faucet.publicKey,amount),   // demo faucet: mints your stake
+      ixStake(user,fixture,position,userAta,escrow,homeGuess,awayGuess,amount),
+    );
+    tx.feePayer=user;
+    tx.recentBlockhash=(await conn.getLatestBlockhash("confirmed")).blockhash;
+    tx.partialSign(faucet);
+
+    btn.textContent='Approve in wallet…';
+    const signed=await provider.signTransaction(tx);
+    btn.textContent='Confirming…';
+    const sig=await conn.sendRawTransaction(signed.serialize());
+    await conn.confirmTransaction(sig,"confirmed");
+
+    locked=true;
+    btn.textContent='Locked ✓';
+    document.getElementById('stakeInput').disabled=true;
+    toast(`On-chain ✓ ${homeGuess}–${awayGuess} for $${yourStake} — tx ${sig.slice(0,8)}…`);
+    console.log("stake tx:",sig,"position:",position.toBase58());
+    render(false);
+  }catch(e){
+    console.error(e);
+    btn.disabled=false; btn.textContent='Lock in';
+    const msg=(e?.message||'').includes('User rejected')?'Signature declined.':
+      'Stake failed: '+(e?.message??e).toString().slice(0,90);
+    toast(msg);
+  }
+}
+
+function computeState(){
+  const all=[{name:'YOU',gh:homeGuess,ga:awayGuess,stake:yourStake},...field]
+    .map(t=>({...t,d:distanceA(t.gh,t.ga,homeLive,awayLive)}));
+  const res=settle(all);
+  const idx=all.findIndex(t=>t.name==='YOU');
+  const rank=[...all].sort((a,b)=>a.d-b.d).findIndex(t=>t.name==='YOU')+1;
+  return {all,res,you:all[idx],youOut:res.outcomes[idx],rank,N:all.length};
+}
+
+/* ================= render ================= */
+function render(push=true){
+  const st=computeState();
+  const payout=st.youOut.payout, pnl=payout-yourStake, winning=st.youOut.isWinner;
+
+  const gv=document.getElementById('graphValue');
+  gv.textContent=(payout>=yourStake?'+':'')+'$'+payout.toFixed(2);
+  gv.className='value '+(payout>=yourStake?'pos':'neg');
+
+  document.getElementById('stakeCard').textContent='$'+yourStake.toFixed(2);
+  document.getElementById('guessCard').textContent='Guess '+homeGuess+'–'+awayGuess+(locked?' · locked':'');
+  document.getElementById('rankValue').textContent=st.rank+' of '+st.N;
+  document.getElementById('rankValue').className='v '+(winning?'pos':'neg');
+  document.getElementById('rankSub').textContent='D = '+st.you.d.toFixed(2)+' · median '+st.res.medianD.toFixed(2);
+  const pc=document.getElementById('pnlCard');
+  pc.textContent=(pnl>=0?'+':'−')+'$'+Math.abs(pnl).toFixed(2);
+  pc.className='v '+(pnl>=0?'pos':'neg');
+
+  const badge=document.getElementById('statusBadge');
+  if(st.res.void){ badge.className='badge neutral'; badge.textContent='● round void — all stakes refunded'; }
+  else if(winning){ badge.className='badge win'; badge.textContent='● projected winner — below the median gate'; }
+  else{ badge.className='badge lose'; badge.textContent='● projected loser — outside the median gate'; }
+
+  document.getElementById('liveScoreDisplay').textContent=homeLive+' – '+awayLive;
+  document.getElementById('clockDisplay').textContent=minute+"'";
+
+  // leaderboard
+  const lb=document.getElementById('lbBody');
+  const rows=st.all.map((t,i)=>({t,o:st.res.outcomes[i]})).sort((a,b)=>a.t.d-b.t.d);
+  lb.innerHTML=rows.map(({t,o})=>
+    `<tr class="${t.name==='YOU'?'you':''}">
+      <td>${t.name==='YOU'?'YOU':'anon·'+t.name}</td>
+      <td>${t.gh}–${t.ga}</td>
+      <td>$${t.stake.toFixed(0)}</td>
+      <td>${t.d.toFixed(2)}</td>
+      <td class="${o.isWinner?'pos-ind':'neg-ind'}">${o.isWinner?'$'+o.payout.toFixed(2):'$0.00'}</td>
+    </tr>`).join('');
+
+  if(push){
+    if(history.length===0) history.push({minute:Math.max(0,minute-10),payout,score:homeLive+'–'+awayLive}); // seed so the line exists at load
+    history.push({minute,payout,score:homeLive+'–'+awayLive});
+  }
+  else if(history.length){ history[history.length-1]={minute,payout,score:homeLive+'–'+awayLive}; }
+  else { history.push({minute,payout,score:homeLive+'–'+awayLive}); }
+  drawGraph();
+  renderTable();
+  return st;
+}
+
+/* ---- chart (single series: no legend box; title names it) ---- */
+const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const PROFIT=CSSV('--profit')||'#0FAE8C', LOSS_C=CSSV('--loss')||'#C97361';
+const W=560,H=190,TOP=16,BOT=172,LPAD=6,RPAD=6;
+function xFor(i){ return LPAD + (i/Math.max(history.length-1,1))*(W-LPAD-RPAD); }
+let yMax=0;
+function drawGraph(){
+  yMax=Math.max(yourStake*2,...history.map(h=>h.payout),10);
+  const yFor=v=>BOT-(v/yMax)*(BOT-TOP);
+  const pts=history.map((h,i)=>`${xFor(i).toFixed(1)},${yFor(h.payout).toFixed(1)}`);
+  document.getElementById('pnlLine').setAttribute('d','M '+pts.join(' L '));
+  document.getElementById('pnlArea').setAttribute('d',
+    `M ${LPAD},${BOT} L ${pts.join(' L ')} L ${xFor(history.length-1).toFixed(1)},${BOT} Z`);
+  const last=history[history.length-1];
+  const stroke=last.payout>=yourStake?PROFIT:LOSS_C;
+  document.getElementById('pnlLine').setAttribute('stroke',stroke);
+  document.getElementById('fillGrad').innerHTML=
+    `<stop offset="0%" stop-color="${stroke}" stop-opacity="0.4"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>`;
+  const be=document.querySelector('.breakeven-line');
+  be.setAttribute('y1',yFor(yourStake)); be.setAttribute('y2',yFor(yourStake));
+  // goal markers
+  document.getElementById('goalMarks').innerHTML=goals.map(g=>{
+    const i=history.findIndex(h=>h.minute>=g.minute);
+    const x=xFor(i<0?history.length-1:i).toFixed(1);
+    return `<line class="goal-marker" x1="${x}" y1="${TOP}" x2="${x}" y2="${BOT}"/>
+            <text class="goal-label" x="${Math.min(Number(x)+4,W-90)}" y="${TOP+10}">${g.minute}' ${g.team}</text>`;
+  }).join('');
+}
+
+/* ---- crosshair + tooltip (hover layer, per interaction spec) ---- */
+const svg=document.getElementById('pnlSvg'), tip=document.getElementById('chartTip');
+document.getElementById('hitLayer').addEventListener('mousemove',ev=>{
+  if(history.length<2) return;
+  const r=svg.getBoundingClientRect();
+  const mx=(ev.clientX-r.left)*(W/r.width);
+  let best=0,bd=1e9;
+  history.forEach((h,i)=>{const d=Math.abs(xFor(i)-mx); if(d<bd){bd=d;best=i;}});
+  const h=history[best], x=xFor(best), y=BOT-(h.payout/yMax)*(BOT-TOP);
+  const cv=document.getElementById('crossV'), dot=document.getElementById('hoverDot');
+  cv.setAttribute('x1',x);cv.setAttribute('x2',x);cv.style.opacity=1;
+  dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.style.opacity=1;
+  const pnl=h.payout-yourStake;
+  tip.innerHTML=`<span class="t-min">${h.minute}' · ${h.score}</span><br>payout $${h.payout.toFixed(2)} <span class="${pnl>=0?'value pos':'value neg'}" style="font-size:11px;">(${pnl>=0?'+':'−'}$${Math.abs(pnl).toFixed(2)})</span>`;
+  tip.style.opacity=1;
+  const px=(x/W)*r.width, py=(y/H)*r.height;
+  tip.style.left=Math.min(px+12,r.width-140)+'px';
+  tip.style.top=Math.max(py-48,0)+'px';
+});
+document.getElementById('hitLayer').addEventListener('mouseleave',()=>{
+  tip.style.opacity=0;
+  document.getElementById('crossV').style.opacity=0;
+  document.getElementById('hoverDot').style.opacity=0;
+});
+
+/* ---- table view (accessibility) ---- */
+let tableOn=false;
+function toggleTable(){
+  tableOn=!tableOn;
+  document.getElementById('pnlTable').style.display=tableOn?'table':'none';
+  document.getElementById('tableToggle').textContent=tableOn?'Hide table':'View as table';
+}
+function renderTable(){
+  if(!tableOn) return;
+  document.getElementById('pnlTableBody').innerHTML=history.map(h=>{
+    const pnl=h.payout-yourStake;
+    return `<tr><td>${h.minute}'</td><td>${h.score}</td><td>$${h.payout.toFixed(2)}</td><td>${pnl>=0?'+':'−'}$${Math.abs(pnl).toFixed(2)}</td></tr>`;
+  }).join('');
+}
+
+/* ---- demo feed (stands in for the TxLine SSE stream) ---- */
+function simulateGoal(side){
+  if(side==='home') homeLive++; else awayLive++;
+  minute=Math.min(minute+1,90);
+  goals.push({minute,team:side==='home'?(MARKET?.home??'HOME').slice(0,3).toUpperCase():(MARKET?.away??'AWAY').slice(0,3).toUpperCase()});
+  const st=render(true);
+  const card=document.getElementById('graphCard');
+  card.classList.remove('flash-win','flash-lose'); void card.offsetWidth;
+  card.classList.add(st.youOut.isWinner?'flash-win':'flash-lose');
+  setTimeout(()=>card.classList.remove('flash-win','flash-lose'),700);
+}
+function advanceClock(){ minute=Math.min(minute+5,90); render(true); }
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* eager-connect if the wallet already trusts this site */
+(async()=>{
+  const p=getProvider();
+  if(p){ try{ const r=await p.connect({onlyIfTrusted:true}); walletPubkey=(r.publicKey??p.publicKey).toString(); renderWallet(); fetchSolBalance(); checkExistingPosition(); }catch(_){} }
+})();
+render(true);
+</script>
+</body>
+</html>
