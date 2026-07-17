@@ -74,11 +74,8 @@ h1,h2,h3{margin:0;}
   border-bottom:1px solid var(--line);
 }
 .nav-inner{display:flex;align-items:center;justify-content:space-between;height:66px;}
-.logo{display:flex;align-items:center;gap:11px;font-family:var(--display);font-size:23px;letter-spacing:.07em;color:var(--text);}
-.logo .mark{
-  width:12px;height:12px;border-radius:3px;background:var(--accent);
-  transform:rotate(45deg);flex-shrink:0;
-}
+.logo{display:flex;align-items:center;gap:0;font-family:var(--display);font-size:23px;letter-spacing:.07em;color:var(--text);}
+.logo .bang{color:var(--accent);}
 .nav-links{display:flex;align-items:center;gap:30px;font-size:14.5px;font-weight:500;}
 .nav-links a{color:var(--muted);transition:color .16s;}
 .nav-links a:hover{color:var(--text);}
