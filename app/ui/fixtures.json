@@ -1,5 +1,5 @@
 {
- "updated": 1784406774561,
+ "updated": 1784409736176,
  "markets": [
   {
    "fixtureId": 18222446,
@@ -34,7 +34,7 @@
    "kickoff": 1784408400000,
    "lockTime": 1784408400,
    "listedAt": 1784374383098,
-   "state": "Open",
+   "state": "Locked",
    "stakerCount": 4,
    "totalPool": 600000000
   },
