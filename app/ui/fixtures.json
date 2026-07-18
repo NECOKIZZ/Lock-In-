@@ -1,5 +1,5 @@
 {
- "updated": 1784413066039,
+ "updated": 1784416850707,
  "markets": [
   {
    "fixtureId": 18222446,
@@ -34,9 +34,14 @@
    "kickoff": 1784408400000,
    "lockTime": 1784408400,
    "listedAt": 1784374383098,
-   "state": "Locked",
+   "state": "Settled",
    "stakerCount": 4,
-   "totalPool": 600000000
+   "totalPool": 600000000,
+   "actualHome": 4,
+   "actualAway": 6,
+   "validateSig": "4gkEnM32Jta35SE9WFBcWR4meRGz1xLZBVeuYccbTjUHi89aCdeXzphQjMGFg7rGLCjbtNSFNkV7iEmy1RzpvBSX",
+   "proofSeq": 1195,
+   "settleSig": "2gVzfsWjycoY2JscL6apkvXLbyuesHBq1HSUxERQ6rwHxxk4zy274KhUuabiQcv8sjiJ7br2xUKwGstEhDb4DJ2U"
   },
   {
    "fixtureId": 18257739,
