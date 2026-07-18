@@ -15,7 +15,9 @@
 
   /* ---- crest logos (drop img/crest/<team-slug>.png; monogram shows until then) ---- */
   .crest{overflow:hidden;position:relative;}
-  .crest .crest-logo{width:100%;height:100%;object-fit:contain;padding:7px;}
+  .crest .crest-logo{width:100%;height:100%;object-fit:cover;}
+  .crest{width:52px;height:39px;}  /* 4:3 like the flags — cut corners read cleanly */
+  .crest.lg{width:64px;height:48px;}
   .crest.noimg::after{content:attr(data-code);font-family:var(--display);}
 
   .badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.05em;
