@@ -1,6 +1,6 @@
 # Lock In — Technical Overview (TxLINE World Cup Track)
 
-**Live app:** https://player-perps.vercel.app · **Repo:** https://github.com/NECOKIZZ/player-perps
+**Live app:** https://lockinpred.vercel.app · **Repo:** https://github.com/NECOKIZZ/Lock-In-
 **Network:** Solana devnet · Program `6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26`
 
 ## Core idea

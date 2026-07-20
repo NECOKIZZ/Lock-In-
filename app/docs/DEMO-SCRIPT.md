@@ -1,11 +1,11 @@
 # Lock In — Demo Script (hackathon submission)
 
-**Live site:** https://player-perps.vercel.app
+**Live site:** https://lockinpred.vercel.app
 **Length:** ~4 minutes. Do a dry run once before recording.
 
 ## Setup (before you hit record)
 
-1. Open https://player-perps.vercel.app in a browser with **Phantom installed and unlocked**, switched to **Devnet** (Phantom → Settings → Developer settings → Testnet mode ON).
+1. Open https://lockinpred.vercel.app in a browser with **Phantom installed and unlocked**, switched to **Devnet** (Phantom → Settings → Developer settings → Testnet mode ON).
 2. Have a little devnet SOL in the wallet (for tx fees). Faucet: https://faucet.solana.com if needed.
 3. Open a second tab on https://explorer.solana.com/?cluster=devnet (you'll paste a tx in later).
 4. **Best timing:** record while France–England or Spain–Argentina is still OPEN (France–England locks at kick-off, Sat 18 Jul 21:00 UTC; Spain–Argentina Sun 19 Jul 19:00 UTC). After both lock you can still demo, but the LOCKIN button will correctly refuse.
