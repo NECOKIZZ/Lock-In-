@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lock In — Docs · how proximity score markets settle trustlessly on Solana</title>
+<meta name="description" content="Technical documentation for Lock In: the proximity scoring model, Trepa-style payout math, the Anchor program, TxLine Merkle-proof settlement, and the autonomous keeper.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ---------- docs layout: sticky TOC + article ---------- */
+  .docs-wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(32px,5vw,64px);padding:48px 0 0;}
+  @media(max-width:920px){.docs-wrap{grid-template-columns:1fr;}}
+
+  .toc{position:sticky;top:90px;align-self:start;font-size:14px;}
+  @media(max-width:920px){.toc{position:static;border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;background:var(--surface);}}
+  .toc .toc-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:14px;}
+  .toc a{display:block;color:var(--muted);padding:6px 0 6px 14px;border-left:2px solid var(--line);transition:color .15s,border-color .15s;line-height:1.35;}
+  .toc a:hover{color:var(--text);}
+  .toc a.active{color:var(--accent);border-left-color:var(--accent);}
+  .toc a.sub{padding-left:26px;font-size:13px;}
+
+  /* ---------- article ---------- */
+  .doc{max-width:760px;}
+  .doc-hero{padding-bottom:8px;}
+  .doc-hero h1{font-family:var(--display);font-weight:400;font-size:clamp(46px,7vw,84px);line-height:.9;letter-spacing:.01em;margin:16px 0 0;}
+  .doc-hero h1 .accent{color:var(--accent);}
+  .doc-hero .lede{color:var(--muted);font-size:17px;line-height:1.6;max-width:58ch;margin:22px 0 0;}
+  .doc-hero .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;}
+  .meta-chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--muted);
+    border:1px solid var(--line-2);background:var(--surface-2);border-radius:20px;padding:6px 13px;}
+  .meta-chip b{color:var(--accent);font-weight:500;}
+  .meta-chip a{color:var(--text);}
+  .meta-chip a:hover{color:var(--accent);}
+
+  .doc section{padding-top:clamp(48px,7vw,76px);scroll-margin-top:90px;}
+  .doc h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,4vw,46px);line-height:.94;letter-spacing:.012em;margin:12px 0 0;}
+  .doc h3{font-family:var(--sans);font-weight:600;font-size:19px;letter-spacing:-.01em;margin:36px 0 12px;}
+  .doc p{color:var(--muted);font-size:15.5px;line-height:1.68;margin:16px 0 0;}
+  .doc p strong,.doc li strong{color:var(--text);font-weight:600;}
+  .doc ul,.doc ol{color:var(--muted);font-size:15.5px;line-height:1.68;margin:14px 0 0;padding-left:22px;}
+  .doc li{margin-top:8px;}
+  .doc li::marker{color:var(--accent);}
+  .doc a:not(.btn){color:var(--text);border-bottom:1px solid var(--line-2);transition:color .15s,border-color .15s;}
+  .doc a:not(.btn):hover{color:var(--accent);border-bottom-color:var(--accent);}
+
+  code{font-family:var(--mono);font-size:.86em;color:var(--text);background:var(--surface-2);
+    border:1px solid var(--line);border-radius:6px;padding:2px 6px;white-space:nowrap;}
+  pre{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;overflow-x:auto;margin:18px 0 0;}
+  pre code{background:none;border:none;padding:0;white-space:pre;font-size:12.5px;line-height:1.65;color:var(--muted);}
+  pre code .g{color:var(--accent);}
+  pre code .w{color:var(--text);}
+  pre code .c{color:var(--muted-2);}
+
+  .doc table{width:100%;border-collapse:collapse;margin:18px 0 0;font-size:13.5px;}
+  .doc th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);
+    text-align:left;padding:10px 14px;border-bottom:1px solid var(--line-2);}
+  .doc td{color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55;}
+  .doc td:first-child{color:var(--text);font-family:var(--mono);font-size:12.5px;white-space:nowrap;}
+  .doc td code{white-space:normal;word-break:break-all;}
+  .table-scroll{overflow-x:auto;}
+  .table-scroll table{min-width:520px;}
+
+  .callout{background:var(--accent-dim);border:1px solid var(--accent-line);border-radius:var(--radius);
+    padding:18px 22px;margin:20px 0 0;}
+  .callout p{margin:0;color:var(--text);font-size:15px;}
+  .callout .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;}
+
+  .step-list{counter-reset:st;list-style:none;padding-left:0;}
+  .step-list li{counter-increment:st;position:relative;padding-left:52px;margin-top:18px;}
+  .step-list li::before{content:counter(st,decimal-leading-zero);position:absolute;left:0;top:1px;
+    font-family:var(--display);font-size:21px;color:var(--accent);letter-spacing:.05em;}
+
+  .addr-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px;}
+  .addr-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .addr-card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin-bottom:6px;}
+  .addr-card a,.addr-card span.v{font-family:var(--mono);font-size:12.5px;color:var(--muted);word-break:break-all;border-bottom:none!important;}
+  .addr-card a:hover{color:var(--accent)!important;}
+
+  .divider{height:1px;background:var(--line);margin-top:clamp(48px,7vw,76px);}
+  .doc-foot-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"><img src="img/logo.png" alt="" onerror="this.replaceWith('LOGO')"></span>LOCK&nbsp;IN<span class="bang">!!!</span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a class="btn ghost sm" href="app.html">Launch app</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container docs-wrap">
+
+  <!-- ============ TOC ============ -->
+  <aside class="toc" id="toc">
+    <div class="toc-label">/ Documentation</div>
+    <a href="#overview">Overview</a>
+    <a href="#quickstart">Try it in 60 seconds</a>
+    <a href="#scoring">The scoring model</a>
+    <a href="#payout">The payout model</a>
+    <a href="#fixed-point">Fixed-point math</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#program">The on-chain program</a>
+    <a href="#settlement">Trustless settlement</a>
+    <a href="#settlement-anatomy" class="sub">Anatomy of a proof</a>
+    <a href="#settlement-trust" class="sub">Why the keeper can't cheat</a>
+    <a href="#keeper">The keeper agent</a>
+    <a href="#txline">TxLine endpoints used</a>
+    <a href="#worked-example">Worked example</a>
+    <a href="#verify">Verify it yourself</a>
+    <a href="#addresses">Addresses &amp; links</a>
+    <a href="#faq">FAQ &amp; limitations</a>
+  </aside>
+
+  <!-- ============ ARTICLE ============ -->
+  <article class="doc">
+
+    <header class="doc-hero">
+      <span class="eyebrow"><span class="tick">/</span> Lock In — technical documentation</span>
+      <h1>PREDICT THE SCORE.<br><span class="accent">PROVE THE SETTLEMENT.</span></h1>
+      <p class="lede">Lock In is a proximity prediction market for football scorelines on Solana. Users stake USDC on the exact full-time score; payouts are weighted by how close each guess landed. The final score enters the program only through a Merkle proof verified on-chain via CPI into TxLine's oracle — no admin, no multisig, no human referee.</p>
+      <div class="meta-row">
+        <span class="meta-chip">Network <b>Solana devnet</b></span>
+        <span class="meta-chip">Oracle <b>TxLine (TxODDS)</b></span>
+        <span class="meta-chip"><a href="https://player-perps.vercel.app" target="_blank" rel="noopener">Live app ↗</a></span>
+        <span class="meta-chip"><a href="https://github.com/NECOKIZZ/player-perps" target="_blank" rel="noopener">GitHub ↗</a></span>
+      </div>
+    </header>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="overview">
+      <span class="eyebrow"><span class="tick">/</span> 01</span>
+      <h2>OVERVIEW</h2>
+      <p>Classic sports prediction markets are binary: pick a winner, get paid or don't. Lock In asks a harder question — <strong>what will the exact final score be?</strong> — and pays out on <strong>proximity</strong>. Guess 2–1 when the match ends 2–1 and you take the biggest share. Guess 2–0 and you still beat the person who said 0–3. Skill is rewarded on a gradient, not a coin flip.</p>
+      <p>The mechanism is a Trepa-style proximity market: every staker's guess is scored by a distance metric <code>D</code> against the validated final score, the field's <strong>median</strong> <code>D</code> becomes the win gate, and losers' stakes (minus a platform take) are redistributed to winners weighted by accuracy, with per-winner caps and a water-fill pass so no single position drains the pool.</p>
+      <p>What makes it a genuine on-chain product rather than a demo:</p>
+      <ul>
+        <li><strong>Trustless settlement.</strong> The final score is accepted only with a Merkle proof, verified by a cross-program invocation into TxLine's on-chain <code>txoracle</code> program against the daily root TxLine itself publishes on Solana. A tampered score is rejected by the chain, not by policy.</li>
+        <li><strong>One engine, three runtimes.</strong> The same fixed-point settlement engine runs in Rust (the program), TypeScript (the keeper), and the browser (live PnL) — byte-identical results, integer-exact.</li>
+        <li><strong>Fully autonomous.</strong> A keeper agent discovers fixtures from the TxLine feed, lists markets, locks them at kick-off, fetches proofs at the final whistle, and settles — unattended, every 10 minutes, via GitHub Actions.</li>
+        <li><strong>Conservation enforced on-chain.</strong> The program refuses any settlement where <code>Σ payouts + platform take ≠ total pool</code>, to the integer.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUICKSTART ============ -->
+    <section id="quickstart">
+      <span class="eyebrow"><span class="tick">/</span> 02</span>
+      <h2>TRY IT IN 60 SECONDS</h2>
+      <ol class="step-list">
+        <li><strong>Set up a devnet wallet.</strong> Install <a href="https://phantom.app" target="_blank" rel="noopener">Phantom</a>, enable Testnet mode (Settings → Developer settings), and grab a little devnet SOL from <a href="https://faucet.solana.com" target="_blank" rel="noopener">faucet.solana.com</a> for transaction fees. Stake USDC is demo-minted for you — no faucet hunting.</li>
+        <li><strong>Open the app.</strong> Go to <a href="https://player-perps.vercel.app/app" target="_blank" rel="noopener">player-perps.vercel.app/app</a> and pick an <strong>Open</strong> market. Markets lock at kick-off — the countdown is read live from the fixture account on-chain.</li>
+        <li><strong>Lock in a score.</strong> Connect your wallet, set your scoreline with the steppers, choose a stake with the slider, and hit <strong>LOCKIN</strong>. One signature sends a single transaction: create your token account (idempotent), mint demo USDC, and stake into the fixture's escrow PDA with your guess.</li>
+        <li><strong>Watch it settle.</strong> After the final whistle the keeper validates the score on-chain and settles. Open any settled market and scroll to the <strong>Settlement proof</strong> panel — final score, feed sequence, and explorer links to the validate and settle transactions.</li>
+      </ol>
+      <div class="callout">
+        <span class="k">Devnet demo</span>
+        <p>Everything runs on Solana devnet with worthless test USDC. TxLine's devnet feed carries sample fixtures; live World Cup data is a mainnet feature-flag away (see <a href="#faq">FAQ</a>).</p>
+      </div>
+    </section>
+
+    <!-- ============ SCORING ============ -->
+    <section id="scoring">
+      <span class="eyebrow"><span class="tick">/</span> 03</span>
+      <h2>THE SCORING MODEL</h2>
+      <p>Every guess <code>(gh, ga)</code> is scored against the validated actual score <code>(ah, aa)</code> with a distance metric <code>D</code>. Lower is better; <code>D = 0</code> means you nailed the exact score. The metric blends four football-native components:</p>
+      <ul>
+        <li><strong>Outcome</strong> — did you call the right result (home / draw / away)? Getting this wrong adds a large fixed penalty <code>P</code>.</li>
+        <li><strong>Goal difference</strong> — how far off was your margin, capped at <code>CAP_GD</code>.</li>
+        <li><strong>Total goals</strong> — how far off was your total, capped at <code>CAP_TG</code>.</li>
+        <li><strong>Clean sheets</strong> — did you correctly call each side keeping (or not keeping) a clean sheet.</li>
+      </ul>
+<pre><code><span class="c">// guess (gh, ga) vs actual (ah, aa)</span>
+gd_guess = gh - ga            gd_actual = ah - aa
+tg_guess = gh + ga            tg_actual = ah + aa
+correct  = 1 if sign(gd_guess) == sign(gd_actual) else 0   <span class="c">// H/D/A match</span>
+d_gd     = min(|gd_guess - gd_actual|, CAP_GD)
+d_tg     = min(|tg_guess - tg_actual|, CAP_TG)
+d_cs     = |cs_home_guess - cs_home_actual| + |cs_away_guess - cs_away_actual|
+
+<span class="w">D = (1 - correct) × P  +  W_GD × d_gd  +  W_TG × d_tg  +  W_CS × d_cs</span>
+
+S = 1 / (1 + D)               <span class="c">// similarity — display &amp; ranking only</span></code></pre>
+      <p>Default parameters — set <strong>per fixture at creation</strong>, so they can be tuned per competition:</p>
+      <div class="table-scroll"><table>
+        <tr><th>Param</th><th>Default</th><th>Meaning</th></tr>
+        <tr><td>P</td><td>4.0</td><td>Penalty for calling the wrong outcome (home/draw/away)</td></tr>
+        <tr><td>W_GD</td><td>1.0</td><td>Weight on goal-difference error</td></tr>
+        <tr><td>W_TG</td><td>0.5</td><td>Weight on total-goals error</td></tr>
+        <tr><td>W_CS</td><td>0.25</td><td>Weight per missed clean-sheet call</td></tr>
+        <tr><td>CAP_GD</td><td>3</td><td>Goal-difference error cap</td></tr>
+        <tr><td>CAP_TG</td><td>4</td><td>Total-goals error cap</td></tr>
+      </table></div>
+      <p>Example: actual score <strong>2–1</strong>. A 2–1 guess scores <code>D = 0</code>. A 3–1 guess (right outcome, margin off by 1, total off by 1) scores <code>D = 1.5</code>. A 1–1 guess (wrong outcome) scores <code>D = 5.75</code>. Being close pays; being right about the <em>shape</em> of the match pays most.</p>
+    </section>
+
+    <!-- ============ PAYOUT ============ -->
+    <section id="payout">
+      <span class="eyebrow"><span class="tick">/</span> 04</span>
+      <h2>THE PAYOUT MODEL</h2>
+      <p><code>D</code> plays the role of the error term in Trepa's proximity-market design. Settlement runs the following algorithm — every step of which is re-derived and enforced <strong>on-chain</strong>, not just computed by the keeper:</p>
+      <ol class="step-list">
+        <li><strong>Void checks.</strong> One staker or fewer → void, everyone refunded. Every staker at the identical <code>D</code> → void, everyone refunded. A void market can never lose anyone money.</li>
+        <li><strong>Best-coalition check.</strong> If the stakers tied at the lowest <code>D</code> make up at least half the field, they win as a group (the median gate below would otherwise eliminate everyone).</li>
+        <li><strong>Median gate.</strong> Otherwise, compute the field's median <code>m</code> (the <code>k</code>-th smallest <code>D</code>, <code>k = ⌊(N+1)/2⌋</code>). Winners are strictly better than the median: <code>D&lt;m</code>. Everyone at or above the median loses their stake.</li>
+        <li><strong>Accuracy weight.</strong> Each winner gets <code>r = D/m</code>, then weight <code>a = (1/(1+r))⁶</code>. The sixth power sharply rewards precision — a near-exact guess earns a much larger share than one that barely beat the median.</li>
+        <li><strong>The pool.</strong> Losers' stakes fund the winners, minus the platform take (default <strong>20%</strong>).</li>
+        <li><strong>Cap + water-fill.</strong> Each winner's gain is capped at <code>100×</code> their stake. The pool is distributed proportional to <code>a</code>; any share exceeding a cap is clipped and the excess cascades to the remaining uncapped winners, repeating until stable. If every winner caps out, the residual routes to the platform take and is logged separately — nothing silently disappears.</li>
+        <li><strong>Payout.</strong> Winners claim <code>stake + gain</code>; losers get 0; voids refund everyone in full.</li>
+      </ol>
+      <div class="callout">
+        <span class="k">Conservation invariant</span>
+        <p><code>Σ payouts + platform_cut == total_pool</code> — exactly, in integer USDC base units. The program checks this before marking a fixture Settled; integer-division dust routes to the platform cut so the books always balance to zero.</p>
+      </div>
+    </section>
+
+    <!-- ============ FIXED POINT ============ -->
+    <section id="fixed-point">
+      <span class="eyebrow"><span class="tick">/</span> 05</span>
+      <h2>FIXED-POINT MATH — NO FLOATS, ANYWHERE</h2>
+      <p>Floating point on a blockchain is a determinism hazard and a compute hog. Every ratio in Lock In — <code>D</code>, <code>r</code>, the accuracy weight <code>a</code>, the formula weights — is a scaled integer with <code>SCALE = 1,000,000</code> (six decimals, deliberately matching USDC's own decimal count). Intermediates use <code>u128</code> to make overflow impossible at realistic stake sizes.</p>
+      <p>The accuracy weight needs an exponentiation, but with a fixed integer exponent it reduces to six exact fixed-point multiplications — no <code>pow()</code>, no approximation:</p>
+<pre><code><span class="c">// r is fixed-point (× SCALE). Returns a, fixed-point (× SCALE).</span>
+fn accuracy_weight(r: u128, scale: u128, gamma: u32) -> u128 {
+    <span class="c">// base = 1/(1+r)  →  scale²/(scale + r)</span>
+    let base = scale * scale / (scale + r);
+    let mut result = scale;                  <span class="c">// 1.0</span>
+    for _ in 0..gamma { result = result * base / scale; }
+    result
+}</code></pre>
+      <p>Every division rounds <strong>down on payouts</strong> — the program can never pay out fractionally more than the escrow holds — and the dust the rounding produces is exactly what the conservation check routes into the platform cut.</p>
+      <p>This engine lives in <code>app/engine/</code> as a pure-Rust crate with <strong>zero Solana dependencies</strong>, which is what lets the identical logic compile into the on-chain program, get mirrored line-for-line in TypeScript (<code>keeper/src/engine.ts</code>, using <code>BigInt</code>), and drive the browser's live-PnL simulation. Seven unit tests pin the spec scenario to the exact integer in all three runtimes.</p>
+    </section>
+
+    <!-- ============ ARCHITECTURE ============ -->
+    <section id="architecture">
+      <span class="eyebrow"><span class="tick">/</span> 06</span>
+      <h2>ARCHITECTURE</h2>
+<pre><code>            <span class="c">┌─ real match ─────────────────────────────────────────┐</span>
+            <span class="c">│</span>  TxLine feed observers record every event            <span class="c">│</span>
+            <span class="c">└──────────────────────────┬───────────────────────────┘</span>
+                               │
+        TxLine API (off-chain) │ daily Merkle root (on-chain PDA)
+                               ▼
+   <span class="w">┌──────────┐    ┌───────────────────┐    ┌──────────────────────┐</span>
+   <span class="w">│  lister  │───▶│  player_perps     │◀───│  monitor             │</span>
+   <span class="w">│  agent   │    │  (Anchor program) │    │  lock → prove → settle│</span>
+   <span class="w">└──────────┘    └─────────┬─────────┘    └──────────────────────┘</span>
+    discovers &amp;             │ CPI                  runs every 10 min
+    lists fixtures          ▼                      (GitHub Actions)
+                  <span class="g">txoracle.validate_stat_v3</span>
+                  <span class="c">(TxLine's on-chain verifier)</span>
+                               │
+                               ▼
+   <span class="w">┌────────────────────────────────────────────────────────────┐</span>
+   <span class="w">│  static UI — reads fixture accounts straight from RPC,     │</span>
+   <span class="w">│  stakes via Phantom/Solflare, renders proof panel + PnL    │</span>
+   <span class="w">└────────────────────────────────────────────────────────────┘</span></code></pre>
+      <div class="table-scroll"><table>
+        <tr><th>Layer</th><th>Path</th><th>What it does</th></tr>
+        <tr><td>engine</td><td><code>app/engine/</code></td><td>Pure-Rust fixed-point settlement engine — distance metric, median gate, accuracy weights, cap/water-fill. No floats, no Solana deps. The single source of truth.</td></tr>
+        <tr><td>program</td><td><code>app/programs/player_perps/</code></td><td>Anchor 0.30 program. Fixture PDA escrows USDC (SPL); full lifecycle plus <em>both</em> settlement paths — the keeper fast path and a batched, resumable pipeline for large staker counts.</td></tr>
+        <tr><td>keeper</td><td><code>app/keeper/</code></td><td>TypeScript agents mirroring the engine byte-for-byte. <code>lister.ts</code> discovers fixtures; <code>monitor.ts</code> locks, proves, and settles. Runs unattended via GitHub Actions.</td></tr>
+        <tr><td>ui</td><td><code>app/ui/</code></td><td>Static frontend, zero build step. Reads accounts directly from RPC, one-signature staking, live PnL, per-market settlement-proof panel.</td></tr>
+      </table></div>
+      <p>The design rule behind the split: <strong>only the escrow is chain-specific</strong>. The engine crate is deliberately chain-agnostic so the same market logic could settle against any chain's escrow layer.</p>
+    </section>
+
+    <!-- ============ PROGRAM ============ -->
+    <section id="program">
+      <span class="eyebrow"><span class="tick">/</span> 07</span>
+      <h2>THE ON-CHAIN PROGRAM</h2>
+      <h3>Accounts</h3>
+      <div class="table-scroll"><table>
+        <tr><th>Account</th><th>Seeds</th><th>Holds</th></tr>
+        <tr><td>Fixture</td><td><code>["fixture", fixture_id]</code></td><td>Market state: lock time, status, scoring params, validated score, pool totals, and the batched-pipeline cursor fields (median candidate, running sums, water-fill round…).</td></tr>
+        <tr><td>StakePosition</td><td><code>["stake", fixture_id, staker]</code></td><td>One per staker per fixture (enforced by PDA derivation — no double-staking). Guess, stake, computed <code>D</code>, winner flag, accuracy weight, payout, claimed flag.</td></tr>
+        <tr><td>Escrow</td><td>ATA of Fixture PDA</td><td>Standard SPL-Token USDC account, authority = the Fixture PDA. Funds only move on <code>claim_payout</code> / refund.</td></tr>
+      </table></div>
+
+      <h3>Lifecycle</h3>
+<pre><code><span class="w">Open</span> ──lock──▶ <span class="w">Locked</span> ──validate_score──▶ <span class="w">ScoreValidated</span>
+                                              │
+             fast path: <span class="g">submit_settlement</span> ───┤
+             (keeper computes, program        │
+              re-derives &amp; verifies all)      ▼
+                                          <span class="w">Settled</span> ──claim_payout──▶ paid
+   batched pipeline: compute_distances_batch → verify_median →
+   accumulate_weights → finalize_payouts   (resumable, CU-bounded)
+                                              │
+                        <span class="c">(≤1 staker / all-tied)</span>▼
+                                           <span class="w">Void</span> ──claim──▶ refunded</code></pre>
+      <p>Two settlement paths exist because Solana transactions have compute-unit and account-count ceilings — with real staker counts, settlement <em>cannot</em> be one instruction. The <strong>fast path</strong> lets the keeper submit precomputed results which the program re-derives and verifies in full (median order-statistics, every distance, conservation) before accepting. The <strong>batched pipeline</strong> processes stakers in resumable chunks with cursor state stored on the Fixture, so even a market with hundreds of positions settles trustlessly.</p>
+
+      <h3>Guards worth knowing</h3>
+      <ul>
+        <li>Staking requires <code>status == Open</code> <em>and</em> <code>now &lt; lock_time</code> — no late bets, enforced on-chain, not in the UI.</li>
+        <li><code>validate_score</code> requires the proof's stat <code>period == 100</code> — TxLine's <code>game_finalised</code> marker — so a live in-play snapshot can never masquerade as the final score.</li>
+        <li>Stat keys must be exactly <code>1</code> and <code>2</code> — whole-match total goals home/away (includes extra time, excludes penalty shootouts, which live in a separate key series). "Final score" is unambiguous.</li>
+        <li><code>submit_settlement</code> recomputes every staker's <code>D</code> from the on-chain validated score and enforces the median and the conservation invariant before flipping to Settled.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SETTLEMENT ============ -->
+    <section id="settlement">
+      <span class="eyebrow"><span class="tick">/</span> 08</span>
+      <h2>TRUSTLESS SETTLEMENT</h2>
+      <p>This is the heart of the build. Lock In never trusts anyone — not the keeper, not our own infrastructure — to say what the final score was. The score enters the program <strong>only</strong> through a Merkle proof verified on-chain against data TxLine itself publishes on Solana.</p>
+<pre><code> real match
+    │  TxLine's observers record every event (goal, card, finalisation…)
+    ▼
+ score records ──▶ each day TxLine hashes ALL records into a Merkle tree
+ (off-chain API)   and publishes ONLY the root on Solana:
+                   the <span class="w">daily_scores_roots</span> PDA (one per UTC day)
+    │
+    │  keeper fetches a proof for one specific record
+    ▼
+ <span class="w">StatValidationInputV3</span> = final-score leaves + every sibling hash
+                          needed to recompute leaf → daily root
+    │
+    ▼
+ <span class="g">player_perps.validate_score</span>
+    ├─ re-derives the root PDA from the proof's own timestamp (seeds pinned)
+    ├─ requires stat period == 100   (game_finalised, not in-play)
+    ├─ requires stat keys 1 &amp; 2      (full-time total goals, home &amp; away)
+    └─ CPI ▶ <span class="g">txoracle.validate_stat_v3</span>
+             recomputes leaf-hash → … → root, compares to the on-chain
+             daily root. Returns 1 = proven; anything else <span class="w">REVERTS</span>.
+    ▼
+ fixture.actual_home / actual_away — trustlessly stored on-chain
+    ▼
+ settlement — payouts re-derived from that stored score, conservation checked</code></pre>
+
+      <h3 id="settlement-anatomy">Anatomy of a proof</h3>
+      <p>The object the keeper fetches from <code>/scores/stat-validation-v3?fixtureId=…&amp;seq=…&amp;statKeys=1,2</code> and forwards verbatim:</p>
+      <div class="table-scroll"><table>
+        <tr><th>Field</th><th>What it proves</th></tr>
+        <tr><td>leaves[]</td><td>The stats being proven — <code>{key:1, value:home, period:100}</code> and <code>{key:2, value:away, period:100}</code></td></tr>
+        <tr><td>leafIndices, multiproofHashes</td><td>Multiproof placing the stat leaves inside the record's stat tree</td></tr>
+        <tr><td>eventStatRoot</td><td>Root of that stat tree</td></tr>
+        <tr><td>fixtureSummary</td><td>The fixture's identity + update counts — binds the proof to <em>this</em> fixture id</td></tr>
+        <tr><td>fixtureProof</td><td>Path from the record up through the fixture's sub-tree</td></tr>
+        <tr><td>mainTreeProof</td><td>Path from the fixture sub-tree up to the <strong>daily root</strong></td></tr>
+        <tr><td>ts</td><td>Record timestamp — determines <em>which day's</em> root PDA the proof must verify against</td></tr>
+      </table></div>
+      <p>A raw sample proof is committed at <a href="proof-sample.json" target="_blank" rel="noopener"><code>proof-sample.json</code></a> if you want to inspect one.</p>
+
+      <h3 id="settlement-trust">Why the keeper can't cheat</h3>
+      <ul>
+        <li><strong>Wrong score</strong> → the leaf hashes change → the recomputed root no longer matches the on-chain root → the CPI returns false → <code>ScoreProofRejected</code>, transaction reverts. Proven live: submitting a tampered 3–1 in place of the true 2–1 fails on-chain.</li>
+        <li><strong>Wrong root account</strong> → it can't pick one. The <code>daily_scores_merkle_roots</code> address is an Anchor <code>seeds=</code> constraint derived from <em>the proof's own timestamp</em> under the txoracle program id — the address is forced, never supplied.</li>
+        <li><strong>Wrong oracle program</strong> → the txoracle account is pinned with <code>address =</code> to a hardcoded per-network constant.</li>
+        <li><strong>In-play snapshot passed off as final</strong> → the <code>period == 100</code> finalisation guard rejects it.</li>
+        <li><strong>Correct score, wrong payouts</strong> → <code>submit_settlement</code> recomputes every distance on-chain and enforces median + conservation; a bad submission reverts.</li>
+      </ul>
+      <div class="callout">
+        <span class="k">Worst case</span>
+        <p>A malicious or broken keeper can only produce a market that <em>doesn't</em> settle — which resolves to Void, refunding everyone in full. It can never produce a wrong payout.</p>
+      </div>
+      <p>One practical note that made this viable: TxLine's v3 proofs use a <strong>shared multiproof</strong>, keeping the full validate transaction at <strong>632 bytes</strong> on devnet — comfortably inside Solana's 1,232-byte limit, so the entire verification happens in a single CPI with no off-chain fallback needed.</p>
+    </section>
+
+    <!-- ============ KEEPER ============ -->
+    <section id="keeper">
+      <span class="eyebrow"><span class="tick">/</span> 09</span>
+      <h2>THE KEEPER AGENT</h2>
+      <p>The whole market lifecycle is automated by two TypeScript agents that run <strong>every 10 minutes via GitHub Actions</strong> — no server, no ops:</p>
+      <ul>
+        <li><strong><code>lister.ts</code></strong> — pulls <code>/fixtures/snapshot</code> from the TxLine feed, applies listing gates (competition allow-list, kick-off window, score-coverage check, daily-root availability), and initialises a Fixture on-chain for each qualifying match.</li>
+        <li><strong><code>monitor.ts</code></strong> — sweeps all listed fixtures each pass: <strong>locks</strong> markets at kick-off, watches <code>/scores/snapshot</code> for <code>game_finalised</code>, then <strong>fetches the stat-validation-v3 proof, submits it on-chain, and settles</strong> (fast path, or the batched pipeline when a void/large market requires it). Each pass writes the market registry to <code>fixtures.json</code> and commits it — which triggers a UI redeploy, so the site is always current.</li>
+      </ul>
+      <p>Auth uses TxLine's free tier: subscribe → sign an activation message with the keeper wallet → JWT, cached between runs. The keeper wallet is a GitHub Actions secret; its only powers are listing fixtures and submitting proofs — and as shown above, a bad submission can't move money incorrectly.</p>
+      <p>This ran unattended through real fixtures: it listed England–Argentina from the feed, locked it at kick-off, validated the real 1–2 final via CPI, and correctly resolved it — with the bot committing the registry update on its own.</p>
+    </section>
+
+    <!-- ============ TXLINE ============ -->
+    <section id="txline">
+      <span class="eyebrow"><span class="tick">/</span> 10</span>
+      <h2>TXLINE ENDPOINTS USED</h2>
+      <div class="table-scroll"><table>
+        <tr><th>Endpoint</th><th>Used for</th></tr>
+        <tr><td>/fixtures/snapshot</td><td>Lister discovery — upcoming fixtures, kick-off times, competition gates</td></tr>
+        <tr><td>/scores/snapshot/{id}</td><td>Monitor — watch for <code>game_finalised</code> (status/period 100), read the final score</td></tr>
+        <tr><td>/scores/stat-validation-v3</td><td>Fetch the Merkle multiproof for total-goals stats (<code>statKeys=1,2</code>)</td></tr>
+        <tr><td>txoracle.validate_stat_v3</td><td><strong>On-chain CPI</strong> — trustless proof verification inside our program</td></tr>
+        <tr><td>daily_scores_roots PDA</td><td>Pinned by seeds in <code>validate_score</code> so proofs verify against the published root</td></tr>
+        <tr><td>subscribe / activate</td><td>Free-tier keeper auth (JWT + API token, cached)</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ WORKED EXAMPLE ============ -->
+    <section id="worked-example">
+      <span class="eyebrow"><span class="tick">/</span> 11</span>
+      <h2>WORKED EXAMPLE</h2>
+      <p>The spec's canonical scenario — five stakers, $200 total pool, actual score <strong>2–1</strong> — is the fixture every runtime must reproduce exactly. It has been settled for real on devnet, and the on-chain integers match the engine to the unit:</p>
+      <div class="table-scroll"><table>
+        <tr><th>Staker</th><th>Guess</th><th>D</th><th>vs median (1.75)</th><th>Payout</th></tr>
+        <tr><td>A</td><td>2–1</td><td>0.00</td><td>winner</td><td><strong>$135.91</strong></td></tr>
+        <tr><td>C</td><td>3–1</td><td>1.50</td><td>winner</td><td><strong>$42.09</strong></td></tr>
+        <tr><td>B, D, E</td><td>—</td><td>≥ 1.75</td><td>losers</td><td>$0.00</td></tr>
+        <tr><td colspan="4">Platform take (incl. rounding dust)</td><td>$22.00</td></tr>
+        <tr><td colspan="4"><strong>Conservation check</strong></td><td><strong>$200.00 ✓</strong></td></tr>
+      </table></div>
+      <p>Exact on-chain integers (USDC base units): <code>A = 135,906,207</code> · <code>C = 42,093,791</code> · <code>take = 22,000,002</code> · <code>Σ = 200,000,000</code> — exact. Staker A, who guessed the score perfectly, takes ~3.2× more than C, who was one goal off: that's the <code>(1/(1+r))⁶</code> accuracy weight doing its job.</p>
+    </section>
+
+    <!-- ============ VERIFY ============ -->
+    <section id="verify">
+      <span class="eyebrow"><span class="tick">/</span> 12</span>
+      <h2>VERIFY IT YOURSELF</h2>
+      <h3>On the explorer</h3>
+      <p>Open a settled market in the app and click its <strong>score proof tx</strong> link, or use the sample below. In Solana Explorer, expand <strong>Program Instruction Logs</strong> and look for the nested CPI:</p>
+<pre><code>player_perps (6krd…mE26)   Instruction: <span class="w">ValidateScore</span>
+  └─ txoracle (6pW6…yP2J)  Instruction: <span class="w">ValidateStatV3</span>
+     Program return: … <span class="g">AQ==</span>        <span class="c">← base64 for 0x01 = proof VALID</span></code></pre>
+      <p>That <code>AQ==</code> return value is TxLine's own on-chain program confirming the Merkle proof against its published daily root — the score was never "told" to the program, it was <em>proven</em>.</p>
+      <div class="addr-grid">
+        <div class="addr-card">
+          <div class="k">Sample validate tx — devnet fixture 18222446, proven 3–1</div>
+          <a href="https://explorer.solana.com/tx/3g81NgBMkNEmd1A4su7VcSFojD3K3nhdnhDHYwDif16MyDuKBraugAH2Bg1XvsjTm8nZVysm5ga6na96haNBN4wU?cluster=devnet" target="_blank" rel="noopener">3g81NgBMkNEmd1A4su7VcSFojD3K3nhdnhDHYwDif16MyDuKBraugAH2Bg1XvsjTm8nZVysm5ga6na96haNBN4wU</a>
+        </div>
+        <div class="addr-card">
+          <div class="k">Sample settle tx — SubmitSettlement, winner claimed $90 of a $100 pool</div>
+          <a href="https://explorer.solana.com/tx/f7Pffhm9bJsWzzriqNWH2XhPNuy7ktFk8n5rAPTKYqiejG7i4q9XowKwVacU3uzRwW84dRUGwgaDGEuTNXxmhmR?cluster=devnet" target="_blank" rel="noopener">f7Pffhm9bJsWzzriqNWH2XhPNuy7ktFk8n5rAPTKYqiejG7i4q9XowKwVacU3uzRwW84dRUGwgaDGEuTNXxmhmR</a>
+        </div>
+      </div>
+      <p style="margin-top:14px;">Note: devnet prunes transaction history aggressively — if an older sample link has expired, the freshest proof links are always on the most recently settled market in <a href="app.html">the app</a> (the keeper records <code>validateSig</code> / <code>settleSig</code> per market in <a href="fixtures.json" target="_blank" rel="noopener"><code>fixtures.json</code></a>).</p>
+
+      <h3>From the repo</h3>
+<pre><code><span class="c"># the engine — 7 tests reproduce the worked example to the integer</span>
+cd app/engine &amp;&amp; cargo test
+
+<span class="c"># the TypeScript mirror — same scenario, zero install (Node ≥ 22)</span>
+cd app/keeper &amp;&amp; node src/demo.ts
+
+<span class="c"># one-command environment + on-chain state audit (21 checks)</span>
+node app/keeper/e2e/healthcheck.mjs</code></pre>
+      <p>The tamper test lives in <code>keeper/e2e/probe-validate.ts</code>: it submits the same proof with the score changed from 2–1 to 3–1 and shows the on-chain validation returning <strong>false</strong> — the forged score is rejected by the chain itself.</p>
+    </section>
+
+    <!-- ============ ADDRESSES ============ -->
+    <section id="addresses">
+      <span class="eyebrow"><span class="tick">/</span> 13</span>
+      <h2>ADDRESSES &amp; LINKS</h2>
+      <div class="addr-grid">
+        <div class="addr-card">
+          <div class="k">Live app</div>
+          <a href="https://player-perps.vercel.app" target="_blank" rel="noopener">https://player-perps.vercel.app</a>
+        </div>
+        <div class="addr-card">
+          <div class="k">Source — GitHub</div>
+          <a href="https://github.com/NECOKIZZ/player-perps" target="_blank" rel="noopener">https://github.com/NECOKIZZ/player-perps</a>
+        </div>
+        <div class="addr-card">
+          <div class="k">Program — player_perps · Solana devnet</div>
+          <a href="https://explorer.solana.com/address/6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26?cluster=devnet" target="_blank" rel="noopener">6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26</a>
+        </div>
+        <div class="addr-card">
+          <div class="k">Oracle — TxLine txoracle · Solana devnet</div>
+          <a href="https://explorer.solana.com/address/6pW64iByfZ8jQnVDQ3Y9Gc3cVfp1RdwPWH2spTfP2J?cluster=devnet" target="_blank" rel="noopener">6pW64iByfZ8jQnVDQ3Y9Gc3cVfp1RdwPWH2spTfP2J</a>
+        </div>
+        <div class="addr-card">
+          <div class="k">Escrow &amp; settlement</div>
+          <span class="v">USDC (SPL Token) · Trepa median-gate proximity payouts</span>
+        </div>
+      </div>
+      <p style="margin-top:16px;">Deeper reading in the repo: <code>app/docs/PROOF.md</code> (full proof-structure walkthrough), <code>app/docs/TECH-OVERVIEW.md</code> (submission overview), and the build spec at the project root.</p>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq">
+      <span class="eyebrow"><span class="tick">/</span> 14</span>
+      <h2>FAQ &amp; LIMITATIONS</h2>
+
+      <h3>Is this real money?</h3>
+      <p>No — this deployment is on Solana <strong>devnet</strong> with a demo USDC mint. The app mints the test USDC for you inside the stake transaction, so anyone can try the full flow with nothing but a devnet wallet and a little faucet SOL for fees.</p>
+
+      <h3>Why do I only see a few markets?</h3>
+      <p>The lister runs against TxLine's <strong>devnet</strong> feed, which carries sample fixtures rather than the full live schedule — live World Cup data is on mainnet. The pipeline is network-agnostic: mainnet is a feature flag on the program build (<code>--features mainnet</code>) and an env var on the keeper (<code>TXLINE_MAINNET=1</code>), with the oracle program id and real USDC mint swapping in. Same engine, same proofs, real fixtures.</p>
+
+      <h3>What happens if the oracle goes quiet?</h3>
+      <p>A market that can't obtain a valid finalisation proof simply doesn't settle — it resolves to <strong>Void</strong> and every staker reclaims their full stake from escrow. Funds can never be stranded by a missing proof, and no human can step in and "decide" the score instead.</p>
+
+      <h3>Can the market maker / platform influence outcomes?</h3>
+      <p>No. There is no privileged settle authority: the score must carry a valid Merkle proof (checked by TxLine's own program via CPI), the payout math is re-derived on-chain, and conservation is enforced to the integer. The platform's take is a fixed, visible parameter of the payout formula — not a discretionary lever.</p>
+
+      <h3>What's deliberately out of scope for this submission?</h3>
+      <p>This build is <strong>Market A</strong>: full-time score proximity, single chain. The broader design (player-prop markets, multichain escrows via the chain-agnostic engine, order-book style pricing, an on-chain season leaderboard) is specced in the repo but intentionally deferred — the submission focuses on proving the hard part end-to-end: <strong>trustless, autonomous, integer-exact settlement of a real feed</strong>.</p>
+
+      <div class="divider"></div>
+      <div class="doc-foot-cta">
+        <a class="btn" href="app.html">Launch the app</a>
+        <a class="btn ghost" href="https://github.com/NECOKIZZ/player-perps" target="_blank" rel="noopener">Read the source</a>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="logo"><span class="logo-mark"><img src="img/logo.png" alt="" onerror="this.replaceWith('LOGO')"></span>LOCK&nbsp;IN<span class="bang">!!!</span></div>
+        <p style="color:var(--muted);font-size:14.5px;max-width:34ch;margin:14px 0 0;">Proximity score markets on Solana. Stake a scoreline, closest wins.</p>
+      </div>
+      <span class="net-pill">Solana · Devnet</span>
+    </div>
+
+    <div class="chain-refs">
+      <div class="chain-ref">
+        <div class="k">Program</div>
+        <a href="https://explorer.solana.com/address/6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26?cluster=devnet" target="_blank" rel="noopener">6krdS27r9oHpiTwHemWXwcKSns7Dj3616pFwKNDgmE26</a>
+      </div>
+      <div class="chain-ref">
+        <div class="k">Oracle · TxLine txoracle</div>
+        <a href="https://explorer.solana.com/address/6pW64iByfZ8jQnVDQ3Y9Gc3cVfp1RdwPWH2spTfP2J?cluster=devnet" target="_blank" rel="noopener">6pW64iByfZ8jQnVDQ3Y9Gc3cVfp1RdwPWH2spTfP2J</a>
+      </div>
+      <div class="chain-ref">
+        <div class="k">Escrow · settlement</div>
+        <span class="addr">USDC (SPL) · Trepa median-gate</span>
+      </div>
+    </div>
+
+    <div class="footer-legal">Devnet demo — tokens are worthless test USDC. Oracle proofs by TxLine (TxODDS).</div>
+  </div>
+</footer>
+
+<script>
+  /* TOC active-section highlight */
+  (function(){
+    const links=[...document.querySelectorAll('.toc a')];
+    const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+    const secs=[...document.querySelectorAll('.doc section[id]')];
+    const io=new IntersectionObserver(es=>{
+      es.forEach(e=>{
+        if(e.isIntersecting){
+          links.forEach(a=>a.classList.remove('active'));
+          const a=map.get(e.target.id); if(a) a.classList.add('active');
+        }
+      });
+    },{rootMargin:'-15% 0px -70% 0px'});
+    secs.forEach(s=>io.observe(s));
+  })();
+</script>
+</body>
+</html>
